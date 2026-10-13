@@ -1,8 +1,7 @@
 prompt *I: ScriptBOF tpb_string_stack_type.sql
-create or replace type body string_stack_type 
+create or replace type body string_stack_type
 is
-/* [HM7A9_20240512_120400] */
-	
+
 	-- ---------------------------------------------------------------------------------------------
 	-- Public procedure to initialise the stack
 	member procedure init_stack
@@ -99,7 +98,7 @@ is
 			l_idx := pi_idx;
 		end if;
 
-		-- If not removing the last entry, then shift all entries from pi_idx+1 to 
+		-- If not removing the last entry, then shift all entries from pi_idx+1 to
 		-- the 1 lower entry in the stack
 		if l_idx <> g_string_stack.last()
 		then

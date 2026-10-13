@@ -1,5 +1,5 @@
 prompt *I: Start of file test_string_stack.sql
---@spoolme test_string_stack.sql
+@hmx_spoolrun test_string_stack.sql
 DECLARE
 	l_msg  string_stack_type := string_stack_type();	-- instantiate
 

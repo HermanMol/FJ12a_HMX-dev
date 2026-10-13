@@ -1,8 +1,8 @@
 prompt *I: ScriptBOF tps_string_stack_type.sql
 create or replace type string_stack_type 
 authid current_user
-as type
-/* [HM7A9_20240512_120400] */
+as object
+
     -- An Oracle Advanced Data type (ADT)
 	-- A stack for maximum 50 strings each of maximum 4000 characters long
 	-- hmol version 1, 20211005
