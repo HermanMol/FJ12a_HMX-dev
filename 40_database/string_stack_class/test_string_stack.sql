@@ -1,7 +1,7 @@
 prompt *I: Start of file test_string_stack.sql
 --@spoolme test_string_stack.sql
 DECLARE
-	l_msg  string_stack_object := string_stack_object();	-- instantiate
+	l_msg  string_stack_type := string_stack_type();	-- instantiate
 
 	l_line_start	number;
 	l_char			varchar2(4000);

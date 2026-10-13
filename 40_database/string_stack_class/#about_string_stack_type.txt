@@ -1,13 +1,9 @@
-About   : String Stack Object
-Author  : Herman Mol
-Date    : 2021 Oct 05
-Location: https://www.github.com/HermanMol/oracle_scripts.git
+About     : String Stack Type
+Author    : Herman Mol
+Date      : 2021-10-05, 2026-10-13
+Repository: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 An ADT (Advanced data Type) for a fifo stack for max 50 strings of 4000 characters.
-
-/* [HM7A9_20240512_120400] */
-A first upload into GitHub. The "hmxt" things still need to be completed.
-
 
 Additional notes:
 01.	I start each line outputted so I can easily found then in the output:

@@ -1,5 +1,5 @@
-prompt *I: ScriptBOF tpb_string_stack_object.sql
-create or replace type body string_stack_object 
+prompt *I: ScriptBOF tpb_string_stack_type.sql
+create or replace type body string_stack_type 
 is
 /* [HM7A9_20240512_120400] */
 	
@@ -13,7 +13,7 @@ is
 
 	-- ---------------------------------------------------------------------------------------------
 	-- Public procedure to add a string to the stack
-	member procedure push (SELF IN OUT NOCOPY string_stack_object, pi_string in varchar2 )
+	member procedure push (SELF IN OUT NOCOPY string_stack_type, pi_string in varchar2 )
 	is
 	begin
 		if g_string_stack.last = g_string_stack.limit
@@ -35,7 +35,7 @@ is
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	member function get (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null) return varchar2
+	member function get (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null) return varchar2
 	is
 		l_idx		number;
 		l_string	varchar2(4000);
@@ -73,7 +73,7 @@ is
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	member procedure remove (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null)
+	member procedure remove (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null)
 	is
 		l_idx	number;
 	begin
@@ -118,7 +118,7 @@ is
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	member function pop (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null) return varchar2
+	member function pop (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null) return varchar2
 	is
 		l_retval	varchar2(4000);	-- same as type t_string_varray50 -> varchar2(4000)
 	begin
@@ -161,7 +161,7 @@ is
 	begin
 		if g_string_stack.count() = 0
 		then
-			l_retval := 'No strings in string_stack_object.';
+			l_retval := 'No strings in string_stack_type.';
 		else
 			for i in g_string_stack.first .. g_string_stack.last
 			loop
@@ -190,9 +190,9 @@ is
 	end get_strings;
 
 	-- ---------------------------------------------------------------------------------------------
-	-- Constructor initialising the object instance
-	constructor function string_stack_object
-		(self in out nocopy string_stack_object)
+	-- Constructor initialising the type instance
+	constructor function string_stack_type
+		(self in out nocopy string_stack_type)
 	return self as result
 	is
 	begin
@@ -202,4 +202,4 @@ is
 	end;
 end;
 /
-prompt *I: ScriptEOF tpb_string_stack_object.sql
+prompt *I: ScriptEOF tpb_string_stack_type.sql

@@ -1,7 +1,7 @@
-prompt *I: ScriptBOF tps_string_stack_object.sql
-create or replace type string_stack_object 
+prompt *I: ScriptBOF tps_string_stack_type.sql
+create or replace type string_stack_type 
 authid current_user
-as object
+as type
 /* [HM7A9_20240512_120400] */
     -- An Oracle Advanced Data type (ADT)
 	-- A stack for maximum 50 strings each of maximum 4000 characters long
@@ -13,21 +13,21 @@ as object
 	,member procedure init_stack
 	-- ---------------------------------------------------------------------------------------------
 	-- Public procedure to add a string to the stack
-	,member procedure push (SELF IN OUT NOCOPY string_stack_object, pi_string in varchar2 )
+	,member procedure push (SELF IN OUT NOCOPY string_stack_type, pi_string in varchar2 )
 	-- ---------------------------------------------------------------------------------------------
 	-- Public function to get a specific entry from the stack (entry remains on the stack)
 	-- pi_idx:
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	,member function get (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null) return varchar2
+	,member function get (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null) return varchar2
 	-- ---------------------------------------------------------------------------------------------
 	-- Public procedure to remove a specific entry from the stack
 	-- pi_idx:
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	,member procedure remove (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null)
+	,member procedure remove (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null)
 	-- ---------------------------------------------------------------------------------------------
 	-- Public function to get a specific entry and remove it from the stack
 	-- So in fact the get + remove.
@@ -35,7 +35,7 @@ as object
 	-- - when null, zero or beyond last, then null is retrieved
 	-- - when < zero, counted back from the last of the stack
 	-- Choosen never to throw an exception SUBSCRIPT_BEYOND_COUNT.
-	,member function pop (SELF IN OUT NOCOPY string_stack_object, pi_idx in number := null) return varchar2
+	,member function pop (SELF IN OUT NOCOPY string_stack_type, pi_idx in number := null) return varchar2
 	-- ---------------------------------------------------------------------------------------------
 	-- Public function to return maximum size of the stack
 	,member function max_idx return number
@@ -53,10 +53,10 @@ as object
 	-- Public function to return all strings from the stack pipelined
 	,member function get_strings return t_string_varray50 pipelined
 	-- ---------------------------------------------------------------------------------------------
-	-- Constructor initialising the object instance
-	,constructor function string_stack_object
-		(self in out nocopy string_stack_object)
+	-- Constructor initialising the type instance
+	,constructor function string_stack_type
+		(self in out nocopy string_stack_type)
 		return self as result
 );
 /
-prompt *I: ScriptEOF tps_string_stack_object.sql
+prompt *I: ScriptEOF tps_string_stack_type.sql
