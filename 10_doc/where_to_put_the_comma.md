@@ -4,7 +4,7 @@
 I spend most of my work programming Oracle SQL and PL/SQL. Ofcourse much time is
 consumed by maintaining existing code. Here it is essential the code is
 readable and many times I start with reformatting the code. Put it in a format
-that _I_ like.
+that _I_ prefer.
 
 This refactoring helps me understanding the code, it's structure. So
 the reformatting is not wasted time. On the contrary! But many times I note that 
@@ -27,15 +27,15 @@ comma _belong_ to?
 >comma! 
 
 ## Advantages of the comma at the beginning
-1. You immediately see that the line is part of the statement started on a prior
+1. You _immediately_ see the line is part of a statement started on a prior
 line.
 1. It eases the method of _"vertical code reading"_; your eyes need less 
-movements to navigate thru the code, because you don't have to read whole lines, scroll 
-horizontally or get to the end of the line (of these ever increasing 
+movements to navigate thru the code, because you don't have to read whole lines,
+scroll horizontally or get to the end of the line (of these ever increasing 
 monitors) to find whether the statement is continued. Or not.
-1. Compare to a line comment: that also _starts_ with the comment indicator 
+1. Compare to line comment: that also _starts_ with the comment indicator 
 ( --, #, \*, etc.)
-1. Compare to a bullet list. Having the bullet at the end would be weird!
+1. Compare to a bullet list. (Having the bullet at the end would be weird!)
 1. Comment on a line after a statement is not separated by a comma from the
 part being commented.
 1. If you must add a parameter or value to a list, you only have to insert 
