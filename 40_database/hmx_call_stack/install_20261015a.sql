@@ -1,6 +1,6 @@
 prompt *I: ScriptBOF install_20261015a.sql
 
-@spoolstart install_20261015a.sql
+@hmx_spoolstart install_20261015a.sql
 
 prompt *I: Version: 2026-10-15 15:23:40
 
@@ -12,6 +12,6 @@ prompt *I: Version: 2026-10-15 15:23:40
 
 @hmx_call_stack_tests_pkg_install.sql
 
-@spoolfinish
+@hmx_spoolfinish
 
 prompt *I: ScriptEOF install_20261015a.sql

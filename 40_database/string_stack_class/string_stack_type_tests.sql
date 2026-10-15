@@ -1,5 +1,5 @@
-prompt *I: Start of file test_string_stack.sql
-@hmx_spoolrun test_string_stack.sql
+prompt *I: ScriptBOF string_stack_type_tests.sql
+@hmx_spoolstart string_stack_type_tests.sql
 DECLARE
 	l_msg  string_stack_type := string_stack_type();	-- instantiate
 
@@ -198,5 +198,5 @@ BEGIN
 	prt(rpad('=',100,'='));
 END;
 /
---spool off
-prompt *I: End of file test_string_stack.sql
+@hmx_spoolfinish
+prompt *I: ScriptEOF string_stack_type_tests.sql

@@ -1,4 +1,4 @@
-prompt *I: ScriptBOF tps_string_stack_type.sql
+prompt *I: ScriptBOF string_stack_type_tps.sql
 create or replace type string_stack_type 
 authid current_user
 as object
@@ -59,4 +59,4 @@ as object
 		return self as result
 );
 /
-prompt *I: ScriptEOF tps_string_stack_type.sql
+prompt *I: ScriptEOF string_stack_type_tps.sql

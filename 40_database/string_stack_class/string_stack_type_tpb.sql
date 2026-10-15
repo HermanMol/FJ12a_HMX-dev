@@ -1,4 +1,4 @@
-prompt *I: ScriptBOF tpb_string_stack_type.sql
+prompt *I: ScriptBOF string_stack_type_tpb.sql
 create or replace type body string_stack_type
 is
 
@@ -201,4 +201,4 @@ is
 	end;
 end;
 /
-prompt *I: ScriptEOF tpb_string_stack_type.sql
+prompt *I: ScriptEOF string_stack_type_tpb.sql
