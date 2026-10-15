@@ -1,0 +1,16 @@
+Find-LiteralString.ps1 . -outputcsv UTL_CALL_STACK_found.csv
+
+FileName,MatchCount,LastWriteTime,FullPath
+R__dp_log.pkb,5,2024-05-18 12:10,H:\20_projects\30_companies\10_hmol\20_work\DE12a_github01\10_work\45_server\oracle_scripts\qdbg\R__dp_log.pkb
+R__dp_log_20240518_121033.pkb,5,2024-05-18 12:10,H:\20_projects\30_companies\10_hmol\20_work\DE12a_github01\10_work\45_server\oracle_scripts\qdbg\R__dp_log_20240518_121033.pkb
+R__dp_log_20240518_121033_backup.pkb,5,2024-05-18 12:10,H:\20_projects\30_companies\10_hmol\20_work\DE12a_github01\10_work\45_server\oracle_scripts\qdbg\R__dp_log_20240518_121033_backup.pkb
+pkb_edblog.sql,6,2023-11-12 15:43,H:\20_projects\30_companies\10_hmol\20_work\CK12a_gdblog\10_work\25_database\xxx_aud_adm\pkb_edblog.sql
+pkg_test_gdblog.sql,1,2023-05-19 11:44,H:\20_projects\30_companies\10_hmol\20_work\CE11a_gdblog\50_testing\pkg_test_gdblog.sql
+gdblog.sql,6,2023-05-19 11:35,H:\20_projects\30_companies\10_hmol\20_work\CE11a_gdblog\80_temp\10_work\25_database\pkb\gdblog.sql
+gdblog.sql,6,2023-05-19 11:35,H:\20_projects\30_companies\10_hmol\20_work\CE11a_gdblog\10_work\25_database\pkb\gdblog.sql
+gdblog_20230514105956.sql,5,2023-05-14 10:59,H:\20_projects\30_companies\10_hmol\20_work\CE11a_gdblog\90_archive\gdblog_20230514105956.sql
+gdblog_20230512181123.sql,6,2023-05-12 18:11,H:\20_projects\30_companies\10_hmol\20_work\CE11a_gdblog\90_archive\gdblog_20230512181123.sql
+R__dp_log.pkb,5,2024-05-18 12:10,H:\20_projects\30_companies\40_vtti\scripts\debugging\qdbg\R__dp_log.pkb
+pkg_hmolog.sql,5,2023-06-23 16:50,H:\20_projects\30_companies\40_vtti\scripts\debugging\pkg_hmolog.sql
+case_01.sql,61,2021-11-10 19:37,H:\20_projects\30_companies\40_vtti\scripts\invoked_from\case_01.sql
+UTL_CALL_STACK_example.sql,21,2021-06-04 10:30,H:\20_projects\30_companies\40_vtti\scripts\UTL_CALL_STACK_example.sql
