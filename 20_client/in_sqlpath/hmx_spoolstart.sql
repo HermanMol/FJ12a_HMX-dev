@@ -1,5 +1,6 @@
 -- Utility: hmx_spoolstart.sql
 -- Generate a unique spoolfile name from the 1st argument added with the database session, user, db-name and datetime.
+-- Version 2026-10-15 16:54:11
 --
 -- Family of HMX spooling commands:
 --	o hmx_spoolstart.sql
@@ -30,7 +31,7 @@ column v_spoolfile new_value v_spoolfile noprint
 
 -- ignore file extension in arg1, if present
 -- remove less-handy characters from the spoolfile name, like spaces etc. with an underscore
-select regexp_replace(lower(regexp_substr('&arg1.','([^/\]*)\.?([^.]*$)',1,1,'i',1)
+select regexp_replace(lower(regexp_substr('&arg1.','[^\\/]*? ([^\\/]*) (\.[^.]+)?$',1,1,'imx',1)
                            || '_' || sys_context('userenv','current_user')
                            || '_' || sys_context('userenv','db_name')
                            || '_' || to_char(sysdate, 'yyyymmdd"T"hh24miss')
@@ -43,4 +44,3 @@ select regexp_replace(lower(regexp_substr('&arg1.','([^/\]*)\.?([^.]*$)',1,1,'i'
 from dual;
 set termout on
 spool &v_spoolfile.
-
