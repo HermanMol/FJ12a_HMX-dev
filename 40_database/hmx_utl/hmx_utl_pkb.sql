@@ -14,6 +14,16 @@ as
     function fk_failed      return varchar2 deterministic is begin return k_failed;     end;
     function fk_success     return varchar2 deterministic is begin return k_success;    end;
     function fk_ellipsis    return varchar2 deterministic is begin return k_ellipsis;   end;
+
+    -- for use with hmx_types.t_bool
+    function fk_bno         return pls_integer deterministic is begin return 0 ;        end;
+    function fk_byes        return pls_integer deterministic is begin return 1 ;        end;
+    function fk_bfalse      return pls_integer deterministic is begin return 0 ;        end;
+    function fk_btrue       return pls_integer deterministic is begin return 1 ;        end;
+    function fk_bfail       return pls_integer deterministic is begin return 0 ;        end;
+    function fk_bpass       return pls_integer deterministic is begin return 1 ;        end;
+    function fk_berror      return pls_integer deterministic is begin return -1;        end;
+
     --                                                                                   Special ASCII characters
     function fk_lf          return varchar2 deterministic is begin return k_lf;         end;   -- ASCII Line Feed
     function fk_cr          return varchar2 deterministic is begin return k_cr;         end;   -- ASCII Carriage Return
@@ -35,6 +45,7 @@ as
     --
     function fk_ack         return varchar2 deterministic is begin return k_ack;        end;   -- ASCII Acknowledgment
     function fk_nak         return varchar2 deterministic is begin return k_nak;        end;   -- ASCII Negative Acknowledgment
+    function fk_none        return varchar2 deterministic is begin return k_none;       end;   -- ASCII Del
 
     -- other constants
     function fk_case_sensitive    return varchar2 deterministic is begin return k_case_sensitive  ; end;
@@ -311,6 +322,125 @@ as
                 raise;  -- already some other thing?
             end if;
     end to_num_val;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Yes" or "No" depending on the input.
+    -- If not "Yes" or "No", then "???" is returned.
+    function f_yes_no
+        (i_val  in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_no  then 'No'
+                when k_yes then 'Yes'
+                else '???'
+                end;
+    end f_yes_no;
+    -- overload for numeric boolean
+    function f_yes_no
+                (i_val  in pls_integer)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_bno  then 'No'
+                when k_byes then 'Yes'
+                else '???'
+                end;
+    end f_yes_no;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "True" or "False" depending on the input.
+    -- If not "True" or "False", then "???" is returned.
+    function f_true_false
+        (i_val  in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_true  then 'True'
+                when k_false then 'False'
+                else '???'
+                end;
+    end f_true_false;
+    -- overload for numeric boolean
+    function f_true_false
+        (i_val  in pls_integer)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_btrue  then 'True'
+                when k_bfalse then 'False'
+                else '???'
+                end;
+    end f_true_false;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Pass" or "Fail" depending on the input.
+    -- If not "Pass" or "Fail", then "???" is returned.
+    function f_pass_fail
+        (i_val  in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_pass then 'Pass'
+                when k_fail then 'Fail'
+                else '???'
+                end;
+    end f_pass_fail;
+    -- overload for numeric boolean
+    function f_pass_fail
+        (i_val  in pls_integer)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_bpass then 'Pass'
+                when k_bfail then 'Fail'
+                else '???'
+                end;
+    end f_pass_fail;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "OK" or "Not OK" depending on the input.
+    -- If not "OK" or "Not OK", then "???" is returned.
+    function f_ok_not_ok
+        (i_val  in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_ok  then 'OK'
+                when k_nok then 'Not OK'
+                else '???'
+                end;
+    end f_ok_not_ok;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Success" or "Failed" depending on the input.
+    -- If not "Success" or "Failed", then "???" is returned.
+    function f_success_failed
+        (i_val  in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case i_val
+                when k_success then 'Success'
+                when k_failed  then 'Failed'
+                else '???'
+                end;
+    end f_success_failed;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

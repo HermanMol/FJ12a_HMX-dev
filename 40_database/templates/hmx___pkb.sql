@@ -1,5 +1,5 @@
-prompt *I: ScriptBOF hmx___pkb.sql
-create or replace package body hmx_utl
+prompt *I: ScriptBOF hmx_pkg_name_pkb.sql
+create or replace package body hmx_pkg_name
 as
     -- Package must be AUTHID CURRENT_USER
 
@@ -32,6 +32,6 @@ begin
 --    || chr(10) || '- CLIENT_USER(utl). =' || nvl(to_char(gdb_tools.gdbutl.get_client_userid        ),'n/a')
 --    );
 
-end hmx_session;
+end hmx_pkg_name;
 /
-prompt *I: ScriptEOF hmx___pkb.sql
+prompt *I: ScriptEOF hmx_pkg_name_pkb.sql

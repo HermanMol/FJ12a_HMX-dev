@@ -4,6 +4,8 @@ AUTHID CURRENT_USER
 as
     -- Package must be AUTHID CURRENT_USER
 
+    k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
+
     -- Public types used for the pipelined function PKG_MEM_USAGE that reports the package memory
     -- usage in the current session.
     type t_pkg_mem_usage_rec is record
@@ -14,8 +16,6 @@ as
     ,free_bytes  number(15)
     );
     type t_pkg_mem_usage_tbl is table of t_pkg_mem_usage_rec;
-
-    k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function returning all version information regarding this package
@@ -49,6 +49,31 @@ as
     function pkg_mem_usage
     return t_pkg_mem_usage_tbl
     pipelined;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Function that returns the item value of a context
+    -- If the item value is not found in the context, the default is returned.
+    -- Parameters:
+    -- - pi_namespace the namespace to be found. Max VARCHAR2(30).
+    -- ATTENTION: this package is INVOKER RIGHTS
+    function context_exists
+        (pi_namespace    in hmx_types.t_vchar30)
+    return hmx_types.t_bool;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Function that returns the item value of a context
+    -- If the item value is not found in the context, the default is returned.
+    -- Parameters:
+    -- - pi_namespace the namespace to be accessed. Max VARCHAR2(30).
+    -- - pi_attribute the context item to get the value from. Max VARCHAR2(30), case-INsensitive.
+    -- - pi_default   the default to be returned when the pi_attribute was not found.
+    -- ATTENTION: this package is INVOKER RIGHTS
+    function get_sys_context
+        (pi_namespace in  hmx_types.t_vchar30
+        ,pi_attribute in  hmx_types.t_vchar30
+        ,pi_default   in  varchar2 := 'n/a'
+        )
+    return varchar2;
 
 end hmx_session;
 /

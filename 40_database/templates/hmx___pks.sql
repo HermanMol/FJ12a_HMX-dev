@@ -1,5 +1,5 @@
-prompt *I: ScriptBOF hmx___pks.sql
-create or replace package hmx_session
+prompt *I: ScriptBOF hmx_pkg_name_pks.sql
+create or replace package hmx_pkg_name
 AUTHID CURRENT_USER
 as
 
@@ -24,7 +24,7 @@ as
     return varchar2
     deterministic;
 
-end hmx_session;
+end hmx_pkg_name;
 /
 
-prompt *I: ScriptEOF hmx___pks.sql
+prompt *I: ScriptEOF hmx_pkg_name_pks.sql

@@ -125,6 +125,68 @@ as
         return;
     end pkg_mem_usage;
 
+    -- ---------------------------------------------------------------------------------------------
+    -- Function that returns the item value of a context
+    -- If the item value is not found in the context, the default is returned.
+    -- Parameters:
+    -- - pi_namespace the namespace to be found. Max VARCHAR2(30).
+    -- ATTENTION: this package is INVOKER RIGHTS
+    function context_exists
+        (pi_namespace    in hmx_types.t_vchar30)
+    return hmx_types.t_bool
+    as
+        l_appctxtab   dbms_session.appctxtabtyp;
+        l_size        number;
+        l_retval      hmx_types.t_bool := hmx_utl.k_false;
+    begin
+        dbms_session.list_context 
+            (list  => l_appctxtab    -- out
+            ,lsize => l_size         -- out
+            );
+        if l_size > 0
+        then
+            <<process_context_list>>
+            for idx in 1 .. l_size
+            loop
+                if upper(pi_namespace) = upper(l_appctxtab(idx).namespace)
+                then
+                    l_retval := hmx_utl.k_false;
+                    exit process_context_list;
+                end if;
+            end loop process_loop_context_list;
+        end if;
+        return l_retval;
+    end context_exists;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Function that returns the item value of a context
+    -- If the item value is not found in the context, the default is returned.
+    -- Parameters:
+    -- - pi_namespace the namespace to be accessed. Max VARCHAR2(30).
+    -- - pi_attribute the context item to get the value from. Max VARCHAR2(30), case-INsensitive.
+    -- - pi_default   the default to be returned when the pi_attribute was not found.
+    -- ATTENTION: this package is INVOKER RIGHTS
+    function get_sys_context
+        (pi_namespace in  hmx_types.t_vchar30
+        ,pi_attribute in  hmx_types.t_vchar30
+        ,pi_default   in  varchar2 := 'n/a'
+        )
+    return varchar2
+    as
+        l_retval    hmx_types.t_vchar4000;
+    begin
+        return sys_context(pi_namespace, pi_attribute, 4000);
+    exception
+        when others
+        then
+            dbms_output.put_line ('*E: invalid item "' || pi_attribute || '" for context ' || pi_namespace|| '.');
+            if sqlcode = -2003
+            then
+                return pi_default;
+            end if;
+            raise;
+    end get_sys_context;
+
 end hmx_session;
 /
 prompt *I: ScriptEOF hmx_session_pkb.sql

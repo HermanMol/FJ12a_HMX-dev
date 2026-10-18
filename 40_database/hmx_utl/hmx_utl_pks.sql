@@ -6,22 +6,32 @@ as
 
     k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
 
-    subtype t_string_type   is varchar2(32767);
-    type    t_strings_type  is table of t_string_type;
-
     k_no          constant varchar2(1) := 'N';
     k_yes         constant varchar2(1) := 'Y';
+    k_false       constant varchar2(1) := 't';
+    k_true        constant varchar2(1) := 'f';
     k_fail        constant varchar2(1) := 'F';
     k_pass        constant varchar2(1) := 'P';
     k_nok         constant varchar2(1) := 'n';
     k_ok          constant varchar2(1) := 'o';
     k_failed      constant varchar2(1) := 'f';
     k_success     constant varchar2(1) := 's';
-    k_ellipsis    constant varchar2(1) := '...';
+    k_ellipsis    constant varchar2(3) := '...';
+
+    -- for use with hmx_types.t_bool
+    k_bno         constant pls_integer :=  0 ;
+    k_byes        constant pls_integer :=  1 ;
+    k_bfalse      constant pls_integer :=  0 ;
+    k_btrue       constant pls_integer :=  1 ;
+    k_bfail       constant pls_integer :=  0 ;
+    k_bpass       constant pls_integer :=  1 ;
+
+    k_berror      constant pls_integer :=  -1 ;
+
     --                                          Special ASCII characters
     k_lf          constant varchar2(1) := chr(10);   -- ASCII Line Feed
     k_cr          constant varchar2(1) := chr(13);   -- ASCII Carriage Return
-    k_crlf        constant varchar2(1) := k_cr || k_lf;
+    k_crlf        constant varchar2(2) := k_cr || k_lf;
     --
     k_sp          constant varchar2(1) := chr(32);   -- ASCII Space
     k_tab         constant varchar2(1) := chr(09);   -- ASCII TAB
@@ -39,6 +49,7 @@ as
     --
     k_ack         constant varchar2(1) := chr(06);   -- ASCII Acknowledgment
     k_nak         constant varchar2(1) := chr(21);   -- ASCII Negative Acknowledgment
+    k_none        constant varchar2(1) := chr(127);  -- ASCII Del
 
     -- other constants
     k_case_sensitive    constant varchar2(1) := 'C';
@@ -54,6 +65,16 @@ as
     function fk_failed      return varchar2 deterministic;
     function fk_success     return varchar2 deterministic;
     function fk_ellipsis    return varchar2 deterministic;
+
+    -- for use with hmx_types.t_bool
+    function fk_bno         return pls_integer deterministic;
+    function fk_byes        return pls_integer deterministic;
+    function fk_bfalse      return pls_integer deterministic;
+    function fk_btrue       return pls_integer deterministic;
+    function fk_bfail       return pls_integer deterministic;
+    function fk_bpass       return pls_integer deterministic;
+    function fk_berror      return pls_integer deterministic;
+
     --                                                 Special ASCII characters
     function fk_lf          return varchar2 deterministic;  -- ASCII Line Feed
     function fk_cr          return varchar2 deterministic;  -- ASCII Carriage Return
@@ -75,6 +96,7 @@ as
     --
     function fk_ack         return varchar2 deterministic;  -- ASCII Acknowledgment
     function fk_nak         return varchar2 deterministic;  -- ASCII Negative Acknowledgment
+    function fk_none        return varchar2 deterministic;  -- ASCII Del
 
     function fk_case_sensitive   return varchar2 deterministic;
     function fk_case_insensitive return varchar2 deterministic;
@@ -201,6 +223,58 @@ as
         (pi_value   in varchar2
         )
     return number
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Yes" or "No" depending on the input.
+    -- If not "Yes" or "No", then "???" is returned.
+    function f_yes_no
+        (i_val  in varchar2)
+    return varchar2
+    deterministic;
+    function f_yes_no
+        (i_val  in pls_integer)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "True" or "False" depending on the input.
+    -- If not "True" or "False", then "???" is returned.
+    function f_true_false
+        (i_val  in varchar2)
+    return varchar2
+    deterministic;
+    function f_true_false
+        (i_val  in pls_integer)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Pass" or "Fail" depending on the input.
+    -- If not "Pass" or "Fail", then "???" is returned.
+    function f_pass_fail
+        (i_val  in varchar2)
+    return varchar2
+    deterministic;
+    function f_pass_fail
+        (i_val  in pls_integer)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "OK" or "Not OK" depending on the input.
+    -- If not "OK" or "Not OK", then "???" is returned.
+    function f_ok_not_ok
+        (i_val  in varchar2)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string "Success" or "Failed" depending on the input.
+    -- If not "Success" or "Failed", then "???" is returned.
+    function f_success_failed
+        (i_val  in varchar2)
+    return varchar2
     deterministic;
 
 end hmx_utl;
