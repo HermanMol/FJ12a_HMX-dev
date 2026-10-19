@@ -3,25 +3,33 @@ create or replace package hmx_annotations
 AUTHID CURRENT_USER
 as
 
--- Package must be AUTHID CURRENT_USER
+/* <hmx-annotations>
 
-/*                                        DEVELOPER NOTES
-* * Naming convention used:
-*   - the b+[k|v|p|f|t|c]_ prefix stands for private Body
-*           [Konstant|Variable|Procedure|Function|Type|Cursor]
-*   - when the name does not start with a b+[k|v|p|f|t|c]_ prefix it can be assumed to be public
-*     available (in the spec)
-*   - method parameter prefixes: pi_* /po_* /pio_* resp. for IN / OUT / IN OUT parameters
-*   - local variable, function or procedure prefixes: l_* / lf_* / lp_*
-*/
+.HMX_OBJECT_VERSION 2026-10-19 11:46:17 CET
 
-    k_spec_version    constant varchar2(20) := '2026-10-18 16:42:50';
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
 
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic;
+.HMX_OBJECT_USAGE
+    This package is a wrapper to manage database annotations.
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - Package was initially developed with invoker rights (AUTHID CURRENT_USER)
+    - Annotations supported in this package are tables, views, materialized views, and indexes.
+
+.HMX_DEVELOPER_NOTES
+    -- See HMX General Developer Notes
+
+** </hmx-annotations> */
+
+--    k_spec_version    constant varchar2(20) := '2026-10-18 16:42:50';
+--
+--    -- ---------------------------------------------------------------------------------------------
+--    -- Public function returning all version information regarding this package
+--    function get_version_info
+--    return varchar2
+--    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that checks if a certain annotation exists. Input parameters are the 
@@ -40,7 +48,6 @@ as
         ,pi_annotation_name  in varchar2                    -- max length 1024
         )
     return hmx_types.t_y_n_e;
-
 
 end hmx_annotations;
 /

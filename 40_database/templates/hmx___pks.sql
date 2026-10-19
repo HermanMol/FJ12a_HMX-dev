@@ -2,27 +2,32 @@ prompt *I: ScriptBOF hmx_pkg_name_pks.sql
 create or replace package hmx_pkg_name
 AUTHID CURRENT_USER
 as
+/* <hmx-annotations>
 
--- Package must be AUTHID CURRENT_USER
+.HMX_OBJECT_VERSION 2026-10-19 11:39:04 CET
+--> hmx_version_line_generator.sql
 
-/*                                        DEVELOPER NOTES
-* * Naming convention used:
-*   - the b+[k|v|p|f|t|c]_ prefix stands for private Body 
-*           [Konstant|Variable|Procedure|Function|Type|Cursor]
-*   - when the name does not start with a b+[k|v|p|f|t|c]_ prefix it can be assumed to be public
-*     available (in the spec)
-*   - method parameter prefixes: pi_* /po_* /pio_* resp. for IN / OUT / IN OUT parameters
-*   - local variable, function or procedure prefixes: l_* / lf_* / lp_*
-*/
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
 
+.HMX_OBJECT_USAGE
+    This package is a wrapper to manage database annotations.
 
-    k_spec_version    constant varchar2(20) := '2026-10-16 09:04:52';
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - Package must be invoker rights (AUTHID CURRENT_USER)
+    - ...
+
+.HMX_DEVELOPER_NOTES
+    -- See HMX General Developer Notes
+
+** </hmx-annotations> */
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic;
+    -- Public ...
+    function ...
+    return ...
+    ...deterministic;
 
 end hmx_pkg_name;
 /

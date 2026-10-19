@@ -13,6 +13,8 @@ prompt -------------------------------------------------------------------------
 
 @hmx_call_stack\hmx_call_stack_pkg_install.sql
 
+@hmx_annotations\hmx_annotations_pkg_install.sql
+
 show errors
 
 prompt *I: ScriptEOF hmx_install_all.sql

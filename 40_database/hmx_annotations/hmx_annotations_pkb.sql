@@ -1,19 +1,37 @@
 prompt *I: ScriptBOF hmx_annotations_pkb.sql
 create or replace package body hmx_annotations
 as
-    -- Package must be AUTHID CURRENT_USER
+/* <hmx-annotations>
 
-    k_body_version varchar2(20) := '2026-10-18 16:43:02';
+.HMX_OBJECT_VERSION 2026-10-19 11:46:01 CET
 
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic
-    as
-    begin
-        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
-    end get_version_info;
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    This package is a wrapper to manage database annotations.
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - Package was initially developed with invoker rights (AUTHID CURRENT_USER)
+    - Annotations supported in this package are tables, views, materialized views, and indexes.
+
+.HMX_DEVELOPER_NOTES
+    -- See HMX General Developer Notes
+
+** </hmx-annotations> */
+
+--    k_body_version varchar2(20) := '2026-10-18 16:43:02';
+--
+--    -- ---------------------------------------------------------------------------------------------
+--    -- Public function returning all version information regarding this package
+--    function get_version_info
+--    return varchar2
+--    deterministic
+--    as
+--    begin
+--        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
+--    end get_version_info;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that checks if a certain annotation exists. Input parameters are the 
@@ -87,7 +105,8 @@ as
                     -- annotation not found but can be created because the related object/column exists
                     l_exists := hmx_utl.k_bno;
                 else
-                    -- annotation not found and can NOT be created because the related object/column does not exist
+                    -- annotation not found and can NOT be created because the related object/column does not exist 
+                    -- or is not supporting the Oracle database annotations, but uses the hmx-annotations hardcoded in the source.
                     l_exists := hmx_utl.k_berror;
                 end if;
             end if;
