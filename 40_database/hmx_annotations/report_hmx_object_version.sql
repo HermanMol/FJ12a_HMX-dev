@@ -54,3 +54,18 @@ select '.HMX_OBJECT_VERSION'
         as for_annotation
 from dual
 /
+select sign(count(*))
+--            into l_found
+            from all_annotations_usage
+            where object_name                           = 'HMX_ALL_OBJECT_VERSIONS'
+            and   object_type                           = 'VIEW'
+            and   annotation_owner                      = sys_context('USERENV','CURRENT_SCHEMA')
+--            and   annotation_name                       = 'Test_Annotation' --l_annotation_name
+--            and   coalesce(column_name ,hmx_utl.k_none) = l_column_name
+--            and   coalesce(domain_name ,hmx_utl.k_none) = l_domain_name
+--            and   coalesce(domain_owner,hmx_utl.k_none) = l_domain_owner
+/
+select *
+from all_annotations_usage
+order by 2,1,7
+/

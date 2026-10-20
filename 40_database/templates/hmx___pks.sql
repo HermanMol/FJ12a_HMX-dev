@@ -4,7 +4,7 @@ AUTHID CURRENT_USER
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-19 11:39:04 CET
+.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
 --> hmx_version_line_generator.sql
 
 .HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
@@ -19,7 +19,7 @@ as
     - ...
 
 .HMX_DEVELOPER_NOTES
-    -- See HMX General Developer Notes
+    - See HMX General Developer Notes
 
 ** </hmx-annotations> */
 

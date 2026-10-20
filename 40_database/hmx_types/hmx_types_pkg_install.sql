@@ -1,8 +1,6 @@
 prompt *I: ScriptBOF hmx_types_pkg_install.sql
 
-@hmx_types_pks.sql
-
-@hmx_types_pkb.sql
+@@hmx_types_pks.sql
 
 -- prompt 
 -- prompt ****************************************************************************************************

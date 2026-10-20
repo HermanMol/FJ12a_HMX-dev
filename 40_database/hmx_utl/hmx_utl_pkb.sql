@@ -1,8 +1,25 @@
 prompt *I: ScriptBOF hmx_utl_pkb.sql
 create or replace package body hmx_utl
 as
+/* <hmx-annotations>
 
-    k_body_version varchar2(20) := '2026-10-15 15:14:58';
+.HMX_OBJECT_VERSION 2026-10-20 16:18:29 CEST
+--> hmx_version_line_generator.sql
+
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    Package with constants and smart functions, some used in OPERATORS
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES -
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+    - Some functions are used in schema level operators. See hmx_operators_opr.sql
+
+** </hmx-annotations> */
 
     -- Public constants implemented as deterministic functions so they can be used in queries
     function fk_no          return varchar2 deterministic is begin return k_no;         end;
@@ -50,16 +67,6 @@ as
     -- other constants
     function fk_case_sensitive    return varchar2 deterministic is begin return k_case_sensitive  ; end;
     function fk_case_insensitive  return varchar2 deterministic is begin return k_case_insensitive; end;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic
-    as
-    begin
-        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
-    end get_version_info;
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to return the received character value or 'nill'
@@ -197,6 +204,8 @@ as
     as
         l_case_sensitive varchar2(1);
     begin
+        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
+
         l_case_sensitive := upper(substr(pi_case,1,1));
         if l_case_sensitive not in (k_case_sensitive, k_case_insensitive)
         then
@@ -224,6 +233,7 @@ as
     exception
         when others
         then
+            gdblog.log_msg('*E: chr3 - ' || sqlerrm);
             return -1;
     end is_equal;  -- varchar2-s, option case sensitive
     -- Overload for character data, with default case insensitive
@@ -236,6 +246,7 @@ as
     deterministic
     as
     begin
+        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
         return is_equal(pi_char1 , pi_char2, k_case_insensitive);
     end is_equal;  -- varchar2-s, default case insensitive
     -- Overload for numeric data.
@@ -248,18 +259,20 @@ as
     deterministic
     as
     begin
+        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
         if  pi_num1 is null
         and pi_num2 is null
         then
-            return 'TRUE';
+            return 1;
         elsif pi_num1 = pi_num2
         then
-            return 'TRUE';
+            return 1;
         end if;
-        return 'FALSE';
+        return 0;
     exception
         when others
         then
+            gdblog.log_msg('*E: num - ' || sqlerrm);
             return -1;
     end is_equal;  -- numbers
     -- Overload for date+time data.
@@ -272,18 +285,20 @@ as
     deterministic
     as
     begin
+        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
         if   pi_date1 is null
         and pi_date2 is null
         then
-            return 'TRUE';
+            return 1;
         elsif pi_date1 = pi_date2
         then
-            return 'TRUE';
+            return 1;
         end if;
-            return 'FALSE';
+        return 0;
     exception
         when others
         then
+            gdblog.log_msg('*E: date - ' || sqlerrm);
             return -1;
     end is_equal;  -- dates
 
@@ -441,6 +456,40 @@ as
                 else '???'
                 end;
     end f_success_failed;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string surounded with single quotes (apostrophes)
+    -- If the passed pi_text is null, also NULL is returned.
+    -- Because single quotes have a special function in Oracle SQL.
+    function f_q1q
+        (pi_text in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        if pi_text is null
+        then
+            return to_char(null);
+        end if;
+        return k_1q || pi_text || k_1q;
+    end f_q1q;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string surounded with double quotes
+    -- If the passed pi_text is null, also NULL is returned.
+    -- Because double quotes have a special function in Oracle SQL.
+    function f_q2q
+        (pi_text in varchar2)
+    return varchar2
+    deterministic
+    as
+    begin
+        if pi_text is null
+        then
+            return to_char(null);
+        end if;
+        return k_2q || pi_text || k_2q;
+    end f_q2q;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

@@ -1,8 +1,8 @@
 prompt *I: ScriptBOF hmx_call_stack_pkg_install.sql
 
-@hmx_call_stack_pks.sql
+@@hmx_call_stack_pks.sql
 
-@hmx_call_stack_pkb.sql
+@@hmx_call_stack_pkb.sql
 
 -- prompt 
 -- prompt ****************************************************************************************************

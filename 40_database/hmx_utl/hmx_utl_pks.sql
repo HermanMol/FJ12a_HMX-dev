@@ -2,9 +2,25 @@ prompt *I: ScriptBOF hmx_utl.sql
 create or replace package hmx_utl
 as
 
--- Package with functions that are the base for OPERATORS
+/* <hmx-annotations>
 
-    k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
+.HMX_OBJECT_VERSION 2026-10-20 10:55:53 CEST
+--> hmx_version_line_generator.sql
+
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    Package with constants and smart functions, some used in OPERATORS
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES -
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+    - Some functions are used in schema level operators. See hmx_operators_opr.sql
+
+** </hmx-annotations> */
 
     k_no          constant varchar2(1) := 'N';
     k_yes         constant varchar2(1) := 'Y';
@@ -100,12 +116,6 @@ as
 
     function fk_case_sensitive   return varchar2 deterministic;
     function fk_case_insensitive return varchar2 deterministic;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to return the received character value or 'nill'
@@ -274,6 +284,24 @@ as
     -- If not "Success" or "Failed", then "???" is returned.
     function f_success_failed
         (i_val  in varchar2)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string surounded with single quotes (apostrophes)
+    -- If the passed pi_text is null, also NULL is returned.
+    -- Because single quotes have a special function in Oracle SQL.
+    function f_q1q
+        (pi_text in varchar2)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string surounded with double quotes
+    -- If the passed pi_text is null, also NULL is returned.
+    -- Because double quotes have a special function in Oracle SQL.
+    function f_q2q
+        (pi_text in varchar2)
     return varchar2
     deterministic;
 

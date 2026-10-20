@@ -1,19 +1,25 @@
 prompt *I: ScriptBOF hmx_session_pkb.sql
 create or replace package body hmx_session
 as
--- package must be AUTHID CURRENT_USER
+/* <hmx-annotations>
 
-    k_body_version varchar2(20) := '2026-10-15 15:14:58';
+.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
+--> hmx_version_line_generator.sql
 
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic
-    as
-    begin
-        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
-    end get_version_info;
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    Package with additional session related functionality.
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - Package requires invoker rights (AUTHID CURRENT_USER)
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+
+** </hmx-annotations> */
 
     -- -----------------------------------------------------------------------------------------------
     -- Public procedure to trace what happens to session settings

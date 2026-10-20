@@ -2,9 +2,25 @@ prompt *I: ScriptBOF hmx_session_pks.sql
 create or replace package hmx_session
 AUTHID CURRENT_USER
 as
-    -- Package must be AUTHID CURRENT_USER
+/* <hmx-annotations>
 
-    k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
+.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
+--> hmx_version_line_generator.sql
+
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    Package with additional session related functionality.
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - Package requires invoker rights (AUTHID CURRENT_USER)
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+
+** </hmx-annotations> */
 
     -- Public types used for the pipelined function PKG_MEM_USAGE that reports the package memory
     -- usage in the current session.
@@ -16,12 +32,6 @@ as
     ,free_bytes  number(15)
     );
     type t_pkg_mem_usage_tbl is table of t_pkg_mem_usage_rec;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Function returning the client userid taken different connections into account

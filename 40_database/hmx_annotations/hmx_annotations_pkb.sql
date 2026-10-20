@@ -3,7 +3,7 @@ create or replace package body hmx_annotations
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-19 11:46:01 CET
+.HMX_OBJECT_VERSION 2026-10-20 15:13:58 CEST
 
 .HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -17,48 +17,36 @@ as
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
 .HMX_DEVELOPER_NOTES
-    -- See HMX General Developer Notes
+    - See HMX General Developer Notes
 
 ** </hmx-annotations> */
 
---    k_body_version varchar2(20) := '2026-10-18 16:43:02';
---
---    -- ---------------------------------------------------------------------------------------------
---    -- Public function returning all version information regarding this package
---    function get_version_info
---    return varchar2
---    deterministic
---    as
---    begin
---        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
---    end get_version_info;
-
     -- ---------------------------------------------------------------------------------------------
-    -- Public function that checks if a certain annotation exists. Input parameters are the 
+    -- Public function that checks if a certain Oracle Annotation exists. Input parameters are the
     -- attributes that uniquely identify an annotation.
     -- Returned:
     -- - hmx_utl.k_byes   if the annotation exists
     -- - hmx_utl.k_bno    if the annotation does not exist, but the related object/column exists
     -- - hmx_utl.k_berror if the annotation does not exist AND the related object/column does not exist.
     function check_annotation_exists
-        (pi_object_name      in varchar2                    -- max length 128
-        ,pi_object_type      in varchar2                    -- max length 9
-        ,pi_column_name      in varchar2 := hmx_utl.k_none  -- max length 128
-        ,pi_domain_name      in varchar2 := hmx_utl.k_none  -- max length 128
-        ,pi_domain_owner     in varchar2 := hmx_utl.k_none  -- max length 128
-        ,pi_annotation_owner in varchar2                    -- max length 128
-        ,pi_annotation_name  in varchar2                    -- max length 1024
+        (pi_object_name      in varchar2                    -- max length 128 , always required
+        ,pi_object_type      in varchar2                    -- max length 9   , always required
+        ,pi_column_name      in varchar2 := hmx_utl.k_none  -- max length 128 , optional, only for tables and views
+        ,pi_domain_name      in varchar2 := hmx_utl.k_none  -- max length 128 , currently ignored in HMX
+        ,pi_domain_owner     in varchar2 := hmx_utl.k_none  -- max length 128 , currently ignored in HMX
+        ,pi_annotation_owner in varchar2                    -- max length 128 , always required
+        ,pi_annotation_name  in varchar2                    -- max length 1024, always required, CaSe SeNsItIvE!
         )
     return hmx_types.t_y_n_e
     as
         -- columns in view all_annotations_usage (Oracle 19)
-        l_object_name       varchar2(128)  := upper(pi_object_name);                    -- always required
-        l_object_type       varchar2(9)    := upper(pi_object_type);                    -- always required
-        l_annotation_owner  varchar2(128)  := upper(pi_annotation_owner);               -- always required
-        l_annotation_name   varchar2(1024) := pi_annotation_name;                       -- always required, CaSe SeNsItIvE!
-        l_column_name       varchar2(128)  := coalesce(pi_column_name ,hmx_utl.k_none); -- optional, only for tables and views
-        l_domain_name       varchar2(128)  := coalesce(pi_domain_name ,hmx_utl.k_none); -- currently ignored in HMX
-        l_domain_owner      varchar2(128)  := coalesce(pi_domain_owner,hmx_utl.k_none); -- currently ignored in HMX
+        l_object_name       varchar2(128)  := upper(pi_object_name);                    
+        l_object_type       varchar2(9)    := upper(pi_object_type);                    
+        l_annotation_owner  varchar2(128)  := upper(pi_annotation_owner);               
+        l_annotation_name   varchar2(1024) := pi_annotation_name;                       
+        l_column_name       varchar2(128)  := coalesce(upper(pi_column_name) ,hmx_utl.k_none); 
+        l_domain_name       varchar2(128)  := coalesce(pi_domain_name ,hmx_utl.k_none); 
+        l_domain_owner      varchar2(128)  := coalesce(pi_domain_owner,hmx_utl.k_none); 
         l_annotation_value  varchar2(4000);
 
         l_exists    hmx_types.t_y_n_e := null;
@@ -105,7 +93,7 @@ as
                     -- annotation not found but can be created because the related object/column exists
                     l_exists := hmx_utl.k_bno;
                 else
-                    -- annotation not found and can NOT be created because the related object/column does not exist 
+                    -- annotation not found and can NOT be created because the related object/column does not exist
                     -- or is not supporting the Oracle database annotations, but uses the hmx-annotations hardcoded in the source.
                     l_exists := hmx_utl.k_berror;
                 end if;
@@ -114,6 +102,125 @@ as
 
         return l_exists;
     end check_annotation_exists;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure that adds or replaces a certain Oracle Annotation value. Input parameters
+    -- are the attributes that uniquely identify an annotation.
+    procedure set_oracle_annotation
+        (pi_object_name      in varchar2                    -- max length 128 , required
+        ,pi_object_type      in varchar2                    -- max length 9   , required
+        ,pi_column_name      in varchar2 := hmx_utl.k_none  -- max length 128 , optional, only for tables
+        ,pi_annotation_name  in varchar2                    -- max length 1024, required, CaSe SeNsItIvE!
+        ,pi_annotation_value in varchar2                    -- max length 4000, optional, CaSe SeNsItIvE!
+        )
+    is
+        -- columns in view all_annotations_usage (Oracle 19)
+        l_object_name       varchar2(128)  := upper(pi_object_name);                    
+        l_object_type       varchar2(9)    := upper(pi_object_type);                    
+        l_column_name       varchar2(128)  := coalesce(pi_column_name ,hmx_utl.k_none); 
+        l_annotation_name   varchar2(1024) := pi_annotation_name;                       
+        l_annotation_value  varchar2(4000) := pi_annotation_value;                      
+        l_annotation_owner  varchar2(128)  := sys_context('USERENV','CURRENT_USER');    -- expecting this package has Invoker Rights
+
+        l_exists    hmx_types.t_y_n_e := null;
+        l_sql       hmx_types.t_vcharmax;
+        l_action    varchar2(10);               -- add or replace
+
+    begin
+        l_exists := check_annotation_exists
+                        (pi_object_name      => l_object_name
+                        ,pi_object_type      => l_object_type
+                        ,pi_column_name      => l_column_name
+                        ,pi_annotation_owner => l_annotation_owner
+                        ,pi_annotation_name  => l_annotation_name
+                        );
+        if l_exists = hmx_utl.k_byes
+        then
+            l_action := 'replace';
+        else
+            l_action := 'add';
+        end if;
+        
+        l_sql := 'alter' 
+            || ' ' || l_object_type 
+            || ' ' || l_object_name
+            || case 
+                    when l_column_name <> hmx_utl.k_none then ' modify ( ' || l_column_name 
+                    else null
+               end
+            || ' annotations ('
+            || l_action 
+            || ' ' || hmx_utl.f_q2q(l_annotation_name)   -- maintain case sensitivity in annotation name : double quotations for Oracle identifiers
+            || ' ' || hmx_utl.f_q1q(pi_annotation_value) -- maintain case sensitivity in annotation value: single quotations for character values
+            || case 
+                    when l_column_name <> hmx_utl.k_none then ')'
+                    else null
+               end
+            || ')';
+            
+        execute immediate l_sql;
+    exception
+        when others
+        then
+            prt('*E: ' || sqlerrm);
+            if l_sql is not null
+            then
+                prt('    while executing command:' );
+                prt('    ' || l_sql );
+            end if;
+            raise;
+    end set_oracle_annotation;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure that drops a certain Oracle Annotation if it exists. Input parameters 
+    -- are the attributes that uniquely identify an annotation.
+    procedure drop_oracle_annotation
+        (pi_object_name      in varchar2                    -- max length 128 , required
+        ,pi_object_type      in varchar2                    -- max length 9   , required
+        ,pi_column_name      in varchar2 := hmx_utl.k_none  -- max length 128 , optional, only for tables
+        ,pi_annotation_name  in varchar2                    -- max length 1024, required, CaSe SeNsItIvE!
+        )
+    is
+        -- columns in view all_annotations_usage (Oracle 19)
+        l_object_name       varchar2(128)  := upper(pi_object_name);                    
+        l_object_type       varchar2(9)    := upper(pi_object_type);                    
+        l_column_name       varchar2(128)  := coalesce(pi_column_name ,hmx_utl.k_none); 
+        l_annotation_name   varchar2(1024) := pi_annotation_name;                       
+
+        l_sql       hmx_types.t_vcharmax;
+        k_action    constant varchar2(14) := 'drop if exists';
+
+    begin
+        
+        l_sql := 'alter' 
+            || ' ' || l_object_type 
+            || ' ' || l_object_name
+            || case 
+                    when l_column_name <> hmx_utl.k_none then ' modify ( ' || l_column_name 
+                    else null
+               end
+            || ' annotations ('
+            || k_action 
+            || ' ' || hmx_utl.f_q2q(l_annotation_name)   -- maintain case sensitivity in annotation name : double quotations for Oracle identifiers
+            || case 
+                    when l_column_name <> hmx_utl.k_none then ')'
+                    else null
+               end
+            || ')';
+            
+        execute immediate l_sql;
+    exception
+        when others
+        then
+            prt('*E: ' || sqlerrm);
+            if l_sql is not null
+            then
+                prt('    while executing command:' );
+                prt('    ' || l_sql );
+            end if;
+            raise;
+    end drop_oracle_annotation;
+
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

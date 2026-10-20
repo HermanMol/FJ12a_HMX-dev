@@ -8,3 +8,4 @@
 - hmx_utl: package with utilities
 - string_stack_class: An oracle database type with methods to handle the 50 entries in a 4000 character varray.
 - templates: database object source (ddl) templates
+- hmx_annotations: wrapper for managing Oracle DB annotation for tables, views, materialized views, and indexes.

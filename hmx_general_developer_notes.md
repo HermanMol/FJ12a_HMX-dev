@@ -4,7 +4,7 @@ This note describes the conventions used in the HMX domain.
 ## Naming convention used in the HMX domain
 
 ### Main conventions
-    - database object source file names
+    - Database object source file names
         - Always _all_ lowercase
         - Always extension .sql
         - Start with the object name
@@ -61,7 +61,7 @@ In the HMX domain, next abbreviations are used in source file names for the data
 | tbp | TABLE PARTITION         | - |
 | tpb | TYPE BODY               | The type body|
 | tps | TYPE                    | Type specification when there is also a type body (so-called "Advanced Data Type" - ADT) |
-| trg | TRIGGER                 | Any trigger: table, logon, ddl-trigger, ... or a script to create the trigger spec and trigger body in one call, then additionally suffxed with *\_install*. |
+| trg | TRIGGER                 | Any trigger: table, logon, ddl-trigger, ... Or a script to create the trigger spec and trigger body in one call, then additionally suffxed with *\_install*. |
 | tsp | TABLE SUBPARTITION      | - |
 | typ | TYPE                    | A (simple) type when there is NO type body |
 | uap | UNIFIED AUDIT POLICY    | - |
@@ -75,7 +75,7 @@ In the HMX domain next prefixes are used in source files:
 | HMX prefix | Meaning       | Notes |
 |:------- |:--------------   |:---   |
 | l       | local            | Inside a function or procedure. |
-| g       | global           | Accessible from anywhere. Could be changed in other objects than it was defined. |
+| g       | global           | Accessible from anywhere. Value can referenced and changed in other objects than it was defined. |
 | s       | self, script     | Accessible only in the object/script, not-public. |
 | (none)  | assumed global   | Preferred to use the g (global) prefix to emphasize public access. |
 |         |                  |

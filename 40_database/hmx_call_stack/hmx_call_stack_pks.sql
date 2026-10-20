@@ -1,21 +1,29 @@
 prompt *I: ScriptBOF hmx_call_stack_pks.sql
 create or replace package hmx_call_stack
 is
--- -------------------------------------------------------------------------------------------------
--- Package using Oracle UTL_CALL_STACK to get information about the call-stack, backtrace and error-stack.
--- - hmx_call_stack.get_called_from
--- - hmx_call_stack.get_backtrace
--- - hmx_call_stack.get_error_stack
+/* <hmx-annotations>
 
-    k_spec_version    constant varchar2(20) := '2026-10-15 15:15:10';
+.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
+
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+.HMX_OBJECT_USAGE
+    Package using Oracle UTL_CALL_STACK to get information about the call-stack, backtrace and error-stack.
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
+    - hmx_call_stack.get_called_from
+    - hmx_call_stack.get_backtrace
+    - hmx_call_stack.get_error_stack
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+
+** </hmx-annotations> */
+-- -------------------------------------------------------------------------------------------------
 
     k_anonymous_block constant varchar2(50) := lower('__anonymous_block'); -- default, see from oracle documentation
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the object name and line number where this was called from.

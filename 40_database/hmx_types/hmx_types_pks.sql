@@ -1,13 +1,27 @@
 prompt *I: ScriptBOF hmx_types_pks.sql
 create or replace package hmx_types
 as
+/* <hmx-annotations>
 
-    k_spec_version    constant varchar2(20) := '2026-10-17 09:57:54';
+.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
+--> hmx_version_line_generator.sql
 
-    -- Types and subtypes not related to a specific domain/package
+.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
 
+.HMX_OBJECT_USAGE
+    Types and subtypes not related to a specific domain/package
+
+.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+
+.HMX_OBJECT_NOTES
     -- More complect HMX types, see:
     -- - string_stack_type
+
+.HMX_DEVELOPER_NOTES
+    - See HMX General Developer Notes
+    - No package body
+
+** </hmx-annotations> */
 
     subtype t_vchar30   is varchar2(30);    -- e.g. DBMS_SESSION LIST_CONTEXT namespace and attribute
     subtype t_vchar128  is varchar2(128);   -- e.g. DBMS_SESSION SET_CONTEXT namespace
