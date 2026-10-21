@@ -3,21 +3,17 @@ create or replace package body hmx_utl
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 16:18:29 CEST
---> hmx_version_line_generator.sql
+.HMX_OBJECT_USAGE: Package with constants and smart functions, some used in OPERATORS
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+.HMX_OBJECT_NOTES: -
 
-.HMX_OBJECT_USAGE
-    Package with constants and smart functions, some used in OPERATORS
-
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES -
-
-.HMX_DEVELOPER_NOTES
+.HMX_DEVELOPER_NOTES: 
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
+
+.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 

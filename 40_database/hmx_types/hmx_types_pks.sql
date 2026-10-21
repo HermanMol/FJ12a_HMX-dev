@@ -3,23 +3,17 @@ create or replace package hmx_types
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
---> hmx_version_line_generator.sql
+.HMX_OBJECT_USAGE: Types and subtypes not related to a specific domain/package
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+.HMX_OBJECT_NOTES: More complex types (Advanced Data Types - ADT's)
 
-.HMX_OBJECT_USAGE
-    Types and subtypes not related to a specific domain/package
+.HMX_DEVELOPER_NOTES:
+    See HMX General Developer Notes
+    No package body
 
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES
-    -- More complect HMX types, see:
-    -- - string_stack_type
-
-.HMX_DEVELOPER_NOTES
-    - See HMX General Developer Notes
-    - No package body
+.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 

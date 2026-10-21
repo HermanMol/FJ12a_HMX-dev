@@ -3,22 +3,17 @@ create or replace package body hmx_call_stack
 is
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 09:33:58 CEST
+.HMX_OBJECT_USAGE: Package using Oracle UTL_CALL_STACK to get information about the call-stack, backtrace and error-stack.
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
-
-.HMX_OBJECT_USAGE
-    Package using Oracle UTL_CALL_STACK to get information about the call-stack, backtrace and error-stack.
-
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES
+.HMX_OBJECT_NOTES:
     - hmx_call_stack.get_called_from
     - hmx_call_stack.get_backtrace
     - hmx_call_stack.get_error_stack
 
-.HMX_DEVELOPER_NOTES
-    - See HMX General Developer Notes
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 

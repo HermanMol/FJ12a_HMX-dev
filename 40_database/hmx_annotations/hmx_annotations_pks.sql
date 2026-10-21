@@ -5,21 +5,16 @@ as
 
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 15:13:48 CEST
+.HMX_OBJECT_USAGE: This package is a wrapper to manage database annotations.
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
-
-.HMX_OBJECT_USAGE
-    This package is a wrapper to manage database annotations.
-
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES
+.HMX_OBJECT_NOTES:
     - Package was initially developed with invoker rights (AUTHID CURRENT_USER)
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
-.HMX_DEVELOPER_NOTES
-    - See HMX General Developer Notes
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 
@@ -42,7 +37,18 @@ as
     return hmx_types.t_y_n_e;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public procedure that adds or replaces a certain Oracle Annotation exists. Input parameters 
+    -- Public function that gets the value of a certain Oracle Annotation. Input parameters
+    -- are the attributes that uniquely identify an annotation.
+    function get_oracle_annotation
+        (pi_object_name      in varchar2                    -- max length 128 , required
+        ,pi_object_type      in varchar2                    -- max length 9   , required
+        ,pi_column_name      in varchar2 := hmx_utl.k_none  -- max length 128 , optional, only for tables
+        ,pi_annotation_name  in varchar2                    -- max length 1024, required, CaSe SeNsItIvE!
+        )
+    return varchar2;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure that adds or replaces a certain Oracle Annotation exists. Input parameters
     -- are the attributes that uniquely identify an annotation.
     procedure set_oracle_annotation
         (pi_object_name      in varchar2                    -- max length 128 , required
@@ -53,7 +59,7 @@ as
         );
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public procedure that drops a certain Oracle Annotation if it exists. Input parameters 
+    -- Public procedure that drops a certain Oracle Annotation if it exists. Input parameters
     -- are the attributes that uniquely identify an annotation.
     procedure drop_oracle_annotation
         (pi_object_name      in varchar2                    -- max length 128 , required

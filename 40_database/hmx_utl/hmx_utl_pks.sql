@@ -4,21 +4,17 @@ as
 
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 10:55:53 CEST
---> hmx_version_line_generator.sql
+.HMX_OBJECT_USAGE: Package with constants and smart functions, some used in OPERATORS
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+.HMX_OBJECT_NOTES: -
 
-.HMX_OBJECT_USAGE
-    Package with constants and smart functions, some used in OPERATORS
-
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES -
-
-.HMX_DEVELOPER_NOTES
+.HMX_DEVELOPER_NOTES: 
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
+
+.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 
@@ -65,7 +61,7 @@ as
     --
     k_ack         constant varchar2(1) := chr(06);   -- ASCII Acknowledgment
     k_nak         constant varchar2(1) := chr(21);   -- ASCII Negative Acknowledgment
-    k_none        constant varchar2(1) := chr(127);  -- ASCII Del
+    k_none        constant varchar2(1) := chr(127);  -- ASCII Del, also used when a char value searched for was not found.
 
     -- other constants
     k_case_sensitive    constant varchar2(1) := 'C';

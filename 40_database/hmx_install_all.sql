@@ -15,7 +15,7 @@ prompt -------------------------------------------------------------------------
 
 @hmx_call_stack\hmx_call_stack_pkg_install.sql
 
-@hmx_annotations\hmx_annotations_pkg_install.sql
+@hmx_annotations\hmx_annotations_install_all.sql
 
 show errors
 

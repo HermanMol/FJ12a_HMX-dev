@@ -113,6 +113,14 @@ In the HMX domain next prefixes are used in source files:
     (...)
 ```
 
+## HMX developer tools and utilities
+
+### Generate HMX-annotation block
+- Generate the initial full HMX-annotation block with script `generate_hmx_annotation_block.sql`
+    The output in DBMS_OUTPUT
+- Generate the HMX object version line with script `hmx_version_line_generator.sql`
+- ...
+
 ## Appendix
 
 ### Page specifics

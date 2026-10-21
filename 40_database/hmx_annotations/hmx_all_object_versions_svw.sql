@@ -1,7 +1,7 @@
 prompt *I: ScriptBOF hmx_all_object_versions_svw.sql
 create or replace force view hmx_all_object_versions
 as
-with hmx_object_annotations as
+with hmx_source_annotations as
     (select owner    as owner
         ,name       as object_name
         ,type       as object_type
@@ -9,10 +9,9 @@ with hmx_object_annotations as
         ,text
     from all_source
     where name like 'HMX^_%' escape '^'   -- only HMX objects
-    and type not in ('TABLE', 'VIEW', 'MATERIALIZED VIEW', 'INDEX') -- use te Oracle Annotation
     and text like '.HMX^_OBJECT^_VERSION%' escape '^'
     )
-,hmx_annotations as
+,hmx_oracle_annotations as
     (select annotation_owner as owner
         ,object_name        as object_name
         ,OBJECT_TYPE        as object_type
@@ -25,13 +24,15 @@ select owner
     ,object_name
     ,object_type
     ,hmx_object_version
-from hmx_object_annotations
+    ,'S' as atn_loc
+from hmx_source_annotations
 union all
 select owner
     ,object_name
     ,object_type
     ,hmx_object_version
-from hmx_annotations
+    ,'A' as atn_loc
+from hmx_oracle_annotations
 order by owner
     ,object_name
     ,object_type

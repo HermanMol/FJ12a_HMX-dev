@@ -1,8 +1,26 @@
 prompt *I: ScriptBOF hmx_annotations_tests.sql
-
+@hmx_spoolstart hmx_annotations_tests.sql
 declare
+/* <hmx-annotations>
 
-    l_atn_name varchar2(1024);
+.HMX_OBJECT_USAGE: Script to test HMX_ANNOTATIONS package. Run from SQLcl.
+
+.HMX_OBJECT_NOTES:
+    This script tests the HMX_ANNOTATIONS package which is a wrapper around ANNOTATIONS
+    functionality for Oracle Annotation (as listed in the view ALL_ANNOTATIONS_USAGE).
+    This script does NOT test the HMX Annotations which are kept in the database
+    object sources (select * from all_source where text like '.HMX^_%' escape '^')
+
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-20 09:33:58 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+** </hmx-annotations> */
+
+    l_atn_name      varchar2(1024);
+    l_atn_value_get varchar2(4000);
+    l_atn_value_set varchar2(4000);
 
     procedure test
         (pi_object_name      in varchar2
@@ -21,7 +39,7 @@ declare
                                 ,pi_annotation_owner => pi_annotation_owner
                                 ,pi_annotation_name  => pi_annotation_name
                                 );
-        prt('*I: Annotation exists?'
+        prt('*I: Oracle Annotation exists?'
                 || ' ' || pi_annotation_owner
                 || '.' || pi_object_name
                 || '.' || pi_object_type
@@ -31,7 +49,7 @@ declare
            );
     end test;
 
--- ================================== MAIN LINE ====================================================
+-- =========================================== MAIN LINE ===========================================
 begin
     prt('*D: (line=' || $$plsql_line ||')');
 
@@ -92,13 +110,41 @@ begin
         ,pi_annotation_name  => l_atn_name                 -- max length 1024
         ,pi_annotation_value => 'Second annotation test value ' || to_char(current_date,'yyyy-mm-dd hh24:mi:ss')   -- max length 4000
         );
+    -- set the value to be tested against later
+    l_atn_value_set := 'Second 4k column test value ' || to_char(current_date,'yyyy-mm-dd hh24:mi:ss');
     hmx_annotations.set_oracle_annotation
-        (pi_object_name      => 'top4000'                  -- max length 128
-        ,pi_object_type      => 'table'                    -- max length 9
-        ,pi_column_name      => 'song_title'               -- max length 128
-        ,pi_annotation_name  => l_atn_name                 -- max length 1024
-        ,pi_annotation_value => 'Second 4k test value ' || to_char(current_date,'yyyy-mm-dd hh24:mi:ss')   -- max length 4000
+        (pi_object_name      => 'top4000'        -- max length 128
+        ,pi_object_type      => 'table'          -- max length 9
+        ,pi_column_name      => 'song_title'     -- max length 128
+        ,pi_annotation_name  => l_atn_name       -- max length 1024
+        ,pi_annotation_value => l_atn_value_set  -- max length 4000
         );
+
+    dbms_session.sleep(1);
+    prt('*I: Get annotation that exists');
+    l_atn_value_get := hmx_annotations.get_oracle_annotation
+                        (pi_object_name      => 'top4000'                  -- max length 128
+                        ,pi_object_type      => 'table'                    -- max length 9
+                        ,pi_column_name      => 'song_title'               -- max length 128
+                        ,pi_annotation_name  => l_atn_name                 -- max length 1024
+                        );
+    if l_atn_value_get = hmx_utl.k_none
+    then
+        prt('*T: FAIL get_oracle_annotation(top4000,table,song_title' || l_atn_name || ') not found.');
+    else
+        if l_atn_value_get = l_atn_value_set
+        then
+            prt('*T: PASS get_oracle_annotation(top4000,table,song_title' || l_atn_name || ') = ' 
+                || hmx_utl.f_q2q(hmx_utl.nvlc(l_atn_value_get))
+                || ' is the expected value'
+                );
+        else
+            prt('*T: FAIL get_oracle_annotation(top4000,table,song_title' || l_atn_name || ') not expected value:' 
+                || ' Expected value = ' || hmx_utl.f_q2q(hmx_utl.nvlc(l_atn_value_set))
+                || ', Retrieved value = ' || hmx_utl.f_q2q(hmx_utl.nvlc(l_atn_value_get))
+                );
+        end if;
+    end if;
 
     dbms_session.sleep(10);
 
@@ -118,4 +164,5 @@ begin
 
 end;
 /
+@hmx_spoolfinish
 prompt *I: ScriptEOF hmx_annotations_tests.sql

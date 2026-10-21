@@ -1,25 +1,20 @@
 prompt *I: ScriptBOF hmx_operators_opr.sql
-
 /* <hmx-annotations>
 
-.HMX_OBJECT_VERSION 2026-10-20 15:29:53 CET
---> hmx_version_line_generator.sql
+.HMX_OBJECT_USAGE: Script to create schema level operators
 
-.HMX_OBJECT_REPO git@github.com:HermanMol/FJ12a_HMX-dev.git
+.HMX_OBJECT_NOTES:
+    Operators can only be used in SQL statements, not in PL/SQL statements
+    - trimws
+    - is_equal
+    - to_num_val
 
-.HMX_OBJECT_USAGE
-    Script to create schema level operators
-
-.HMX_DB_VERSION Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-
-.HMX_OBJECT_NOTES -
-
-.HMX_DEVELOPER_NOTES
-    - See HMX General Developer Notes
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
-
--- Operators can only be used in SQL statements, not in PL/SQL statements
 
 -- trim-s all white space incl LF, CR, CRLF, TAB and space i.s.o. TRIM (does only spaces)
 -- ideal e.g. when inserting/updating fields that suffer from copy-paste-with-accidental_spaces
