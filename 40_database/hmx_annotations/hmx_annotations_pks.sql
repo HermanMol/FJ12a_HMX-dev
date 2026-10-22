@@ -12,11 +12,28 @@ as
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_OBJECT_VERSION: 2026-10-22 17:17:26 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
+
+    -- Constant for the default HMX object version format
+    k_hmx_object_version_format constant varchar2(29) := 'yyyy-mm-dd hh24:mi:ss TZH:TZM';
+    -- Function returning the version format
+    function fk_hmx_object_version_format return varchar2 deterministic;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that converts an HMX_OBJECT_VERSION value from the expected format 
+    -- to a UTC value. The expected format is defined in public package constant k_hmx_object_version_format.
+    -- Optionally an alternative format can be specified which will be applied only if the
+    -- default did not succeed.
+    function hmx_version_to_utc
+        (pi_hmx_version in varchar2
+        ,pi_alt_format  in varchar2 := null
+        )
+    return varchar2
+    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that checks if a certain Oracle Annotation exists. Input parameters are the

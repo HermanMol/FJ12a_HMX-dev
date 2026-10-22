@@ -6,7 +6,7 @@
     At this moment (2026-10-21) The Oracle Annotations only apply to the 
     object types : table, view, materialized view and index.
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 12:02:03 CEST
+.HMX_OBJECT_VERSION: 2026-10-22 09:36:13 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -14,7 +14,7 @@
 
 declare
 
-    -- Procedure to generate an HMX annotation block
+    -- Procedure to generate an HMX-annotation block
     procedure hmx_generate_annotation_block
         (pi_repo in varchar2 := null)
     as
@@ -37,8 +37,7 @@ declare
         prt;
         prt('.HMX_DEVELOPER_NOTES: See HMX General Developer Notes');
         prt('.HMX_OBJECT_VERSION:'
-            || ' ' || to_char(current_date,'yyyy-mm-dd hh24:mi:ss')
-            || ' ' || extract(timezone_abbr from current_timestamp)
+            || ' ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM')
             );
         select replace (banner_full,chr(10),' ') as db_banner_full
         into l_db_version_banner
@@ -58,5 +57,9 @@ declare
 
 begin
     hmx_generate_annotation_block('git@github.com:HermanMol/FJ12a_HMX-dev.git');
+exception
+    when others
+    then
+        prt('*E: ' || sqlerrm);
 end;
 /

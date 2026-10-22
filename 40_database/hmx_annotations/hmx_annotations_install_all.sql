@@ -1,6 +1,6 @@
 prompt *I: ScriptBOF hmx_annotations_install_all.sql
 
-@@hmx_all_object_annotations_svw.sql
+@@hmx_all_annotations_svw.sql
 
 @@hmx_all_object_versions_svw.sql
 

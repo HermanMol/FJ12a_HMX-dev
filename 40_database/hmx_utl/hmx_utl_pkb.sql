@@ -11,7 +11,7 @@ as
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
 
-.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 CEST
+.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 

@@ -1,6 +1,24 @@
 prompt *I: ScriptBOF string_stack_type_tpb.sql
 create or replace type body string_stack_type
 is
+/* <hmx-annotations>
+
+.HMX_OBJECT_USAGE: This type is a stack for maximum 50 entries of varchar2(4000) strings, including methods to maintain the entries.
+
+.HMX_OBJECT_NOTES:
+    Type is invoker rights (AUTHID CURRENT_USER)
+    This Oracle Advanced Data type (ADT): a type with a body.
+    Instantiate in a package same as a regular type.
+    Multiple instances are possible, even in the same module.
+
+.HMX_DEVELOPER_NOTES: 
+    See HMX General Developer Notes
+    Using schema level type t_string_varray50
+.HMX_OBJECT_VERSION: 2021-10-05 08:00:01 +02:00
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+** </hmx-annotations> */
 
 	-- ---------------------------------------------------------------------------------------------
 	-- Public procedure to initialise the stack

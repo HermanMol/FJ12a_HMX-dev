@@ -1,5 +1,17 @@
 prompt *I: ScriptBOF hmx_sys_context_userenv_svw.sql
 create or replace force view hmx_sys_context_userenv
+    (INFO_ITEM  annotations (add hmx_column_usage 'The USERENV context item to show the value of.')
+    ,INFO_VALUE annotations (add hmx_column_usage 'The USERENV context item value.')
+    ,SQL_CMD    annotations (add hmx_column_usage 'The ready-to-copy statement to get that USERENV item value.')
+    )
+    annotations
+        (add hmx_object_usage    'This view shows USERENV values, showing <Unknown> when the info_item does not exist.'
+        ,add hmx_object_notes    'Values are retrieved using HMX_SESSION.GET_SYS_CONTEXT thus avoiding an exception when an info_item does not exist.'
+        ,add hmx_developer_notes 'See HMX General Developer Notes'
+        ,add hmx_object_version  '2026-10-22 10:01:54 +02:00'
+        ,add hmx_db_version      'Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0'
+        ,add hmx_object_repo     'git@github.com:HermanMol/FJ12a_HMX-dev.git'
+        )
 as
 with ctx_items as
     (         select 'ACTION'                             as info_item from dual

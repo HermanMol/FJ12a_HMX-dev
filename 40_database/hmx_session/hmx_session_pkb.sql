@@ -9,7 +9,7 @@ as
     - Package requires invoker rights (AUTHID CURRENT_USER)
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 

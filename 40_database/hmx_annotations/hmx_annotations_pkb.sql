@@ -10,11 +10,59 @@ as
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 CEST
+.HMX_OBJECT_VERSION: 2026-10-22 17:17:26 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the version format
+    function fk_hmx_object_version_format
+    return varchar2
+    deterministic
+    as
+    begin
+        return k_hmx_object_version_format;
+    end fk_hmx_object_version_format ;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that converts an HMX_OBJECT_VERSION value from the expected format
+    -- to a UTC value. The expected format is defined in public package constant k_hmx_object_version_format.
+    -- Optionally an alternative format can be specified which will be applied only if the
+    -- default did not succeed.
+    function hmx_version_to_utc
+        (pi_hmx_version in varchar2
+        ,pi_alt_format  in varchar2 := null
+        )
+    return varchar2
+    deterministic
+    as
+        l_retval    varchar2(100);
+    begin
+        <<try_default_format>>
+        begin
+            l_retval := substr(sys_extract_utc(to_timestamp_tz(pi_hmx_version,k_hmx_object_version_format)) || 'Z',1,100);
+        exception
+            when others
+            then
+                l_retval := null;
+        end try_default_format;
+
+        if  l_retval      is null
+        and pi_alt_format is not null
+        then
+            <<try_alternative_format>>
+            begin
+                l_retval := substr(sys_extract_utc(to_timestamp_tz(pi_hmx_version,pi_alt_format)) || 'Z',1,100);
+            exception
+                when others
+                then
+                    l_retval := null;
+            end try_alternative_format;
+        end if;
+        return l_retval;
+    end hmx_version_to_utc;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that checks if a certain Oracle Annotation exists. Input parameters are the
