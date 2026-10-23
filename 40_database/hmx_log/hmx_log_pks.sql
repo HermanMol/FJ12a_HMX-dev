@@ -1,95 +1,98 @@
-/* <hmx-annotations>
-
-
-.HMX_OBJECT_USAGE: This package/script...
-
-.HMX_OBJECT_NOTES:
-    ?Package must be invoker rights (AUTHID CURRENT_USER)
-    ...
-
-.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-22 10:58:08 +02:00
-.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
-.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
-
-** </hmx-annotations> */
 prompt *I: ScriptBOF hmx_log_pks.sql
 create or replace package hmx_log
 AUTHID CURRENT_USER
 as
--- package must be AUTHID CURRENT_USER
--- =================================================================================================
--- Project: e-CertNL
--- Purpose: e-CertNL Database Logger - public logging functionality
--- =================================================================================================
+/* <hmx-annotations>
 
-/* Wijzigingshistorie
-|  versie   datum           auteur             reden
-|  1        27-10-2023      HMO                USEC-5926 eDBLog sources Herman installeren
-*/
+.HMX_OBJECT_USAGE: This package/script...
 
-/*                                        DEVELOPER NOTES
-* * Naming convention used:
-*   - the b[c|v|p|f|t]_ prefix stands for private Body [Constant|Variable|Procedure|Function|Type]
-*   - when the name does not start with a b[c|v|p|f|t]_ prefix it can be assumed to be public
-*     available (in the spec)
-*   - method parameter prefixes: pi_* /po_* /pio_* resp. for IN / OUT / IN OUT parameters
-*   - local variable, function or procedure prefixes: l_* / lf_* / lp_*
-*/
+.HMX_OBJECT_NOTES:
+    Package must be invoker rights (AUTHID CURRENT_USER)
+    ...
 
-  c_spec_version        constant varchar2(9)  := '20231112a';
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-23 10:34:47 +02:00
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
 
   -- Constants related to this package
-  -- Note: also see package GDBUTL
-  c_no                  constant varchar2 (01) := 'N';
-  c_yes                 constant varchar2 (01) := 'Y';
-
   -- For pi_log_opt to control additional logging using bitwise value (BITAND)
-  c_log_call_stack      constant number(1,0) := 1;
-  c_log_error_backtrace constant number(1,0) := 2;
-  c_add_cached_msg      constant number(1,0) := 4;
-  c_force_logging       constant number(1,0) := 8;
+  k_log_call_stack      constant number(1,0) := 1;
+  k_log_error_backtrace constant number(1,0) := 2;
+  k_add_cached_msg      constant number(1,0) := 4;
+  k_force_logging       constant number(1,0) := 8;
 
-  -- Public constants implemented as functions so they can be used in queries.
+  -- Public constants.
   -- Log message type, predefined constants
   -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
-  function c_info        return varchar2 deterministic;  -- constant varchar2(8) := 'INFO';  -- default
-  function c_tech        return varchar2 deterministic;  -- constant varchar2(8) := 'TECH';
-  function c_func        return varchar2 deterministic;  -- constant varchar2(8) := 'FUNC';
-  function c_trace       return varchar2 deterministic;  -- constant varchar2(8) := 'TRACE';
-  function c_debug       return varchar2 deterministic;  -- constant varchar2(8) := 'DEBUG';
-  function c_develop     return varchar2 deterministic;  -- constant varchar2(8) := 'DEVELOP';
-  function c_testing     return varchar2 deterministic;  -- constant varchar2(8) := 'TESTING';
-  function c_auditing    return varchar2 deterministic;  -- constant varchar2(8) := 'AUDIT';
-  function c_security    return varchar2 deterministic;  -- constant varchar2(8) := 'SECURITY';
-  function c_logging     return varchar2 deterministic;  -- constant varchar2(8) := 'LOGGING';   -- internally hmx_log usage
+  k_info        constant varchar2(8) := 'INFO';  -- default
+  k_tech        constant varchar2(8) := 'TECH';
+  k_func        constant varchar2(8) := 'FUNC';
+  k_trace       constant varchar2(8) := 'TRACE';
+  k_debug       constant varchar2(8) := 'DEBUG';
+  k_develop     constant varchar2(8) := 'DEVELOP';
+  k_testing     constant varchar2(8) := 'TESTING';
+  k_auditing    constant varchar2(8) := 'AUDIT';
+  k_security    constant varchar2(8) := 'SECURITY';
+  k_logging     constant varchar2(8) := 'LOGGING';   -- internally hmx_log usage
   -- Log message level, predefined constants
   -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
   -- call stack level the log message was issued.
-  function c_no_level    return number   deterministic;  -- constant number :=  0; -- default
-  function c_cache       return number   deterministic;  -- constant number :=  5; -- cache the message i.s.o. immediately writing it to the log table
-  function c_normal      return number   deterministic;  -- constant number := 10;
-  function c_attention   return number   deterministic;  -- constant number := 15;
-  function c_warning     return number   deterministic;  -- constant number := 20;
-  function c_error       return number   deterministic;  -- constant number := 25; -- possible to recover/continue
-  function c_severe      return number   deterministic;  -- constant number := 30; -- more serious error that just an error
-  function c_critical    return number   deterministic;  -- constant number := 35; -- unrecoverable, abort processing
-  function c_force       return number   deterministic;  -- constant number := 99; -- just force log without any other reason
+  k_no_level    constant number(2,0) :=  0; -- default
+  k_cache       constant number(2,0) :=  5; -- cache the message i.s.o. immediately writing it to the log table
+  k_normal      constant number(2,0) := 10;
+  k_attention   constant number(2,0) := 15;
+  k_warning     constant number(2,0) := 20;
+  k_error       constant number(2,0) := 25; -- possible to recover/continue
+  k_severe      constant number(2,0) := 30; -- more serious error that just an error
+  k_critical    constant number(2,0) := 35; -- unrecoverable, abort processing
+  k_force       constant number(2,0) := 99; -- just force log without any other reason
   -- Log message scope, predefined constants
   -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
-  function c_anyone      return varchar2 deterministic;  -- constant varchar2 (10) := 'ANYONE';  -- default
-  function c_developer   return varchar2 deterministic;  -- constant varchar2 (10) := 'DEVELOPER';
-  function c_tester      return varchar2 deterministic;  -- constant varchar2 (10) := 'TESTER';
-  function c_admin       return varchar2 deterministic;  -- constant varchar2 (10) := 'ADMIN';
-  function c_operations  return varchar2 deterministic;  -- constant varchar2 (10) := 'OPERATIONS';
-  function c_user        return varchar2 deterministic;  -- constant varchar2 (10) := 'USER';
-  function c_keyuser     return varchar2 deterministic;  -- constant varchar2 (10) := 'KEYUSER';
+  k_anyone      constant varchar2 (10) := 'ANYONE';  -- default
+  k_developer   constant varchar2 (10) := 'DEVELOPER';
+  k_tester      constant varchar2 (10) := 'TESTER';
+  k_admin       constant varchar2 (10) := 'ADMIN';
+  k_operations  constant varchar2 (10) := 'OPERATIONS';
+  k_user        constant varchar2 (10) := 'USER';
+  k_keyuser     constant varchar2 (10) := 'KEYUSER';
 
-  -- =============================================================================================
-  -- Function that returns all version information regarding this package spec and body
-  function get_version_info
-  return varchar2
-  deterministic;
+  -- Public constant functions so they can be used in queries.
+  -- Log message type, predefined constants
+  -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
+  function fk_info        return varchar2 deterministic;
+  function fk_tech        return varchar2 deterministic;
+  function fk_func        return varchar2 deterministic;
+  function fk_trace       return varchar2 deterministic;
+  function fk_debug       return varchar2 deterministic;
+  function fk_develop     return varchar2 deterministic;
+  function fk_testing     return varchar2 deterministic;
+  function fk_auditing    return varchar2 deterministic;
+  function fk_security    return varchar2 deterministic;
+  function fk_logging     return varchar2 deterministic;
+  -- Log message level, predefined constants
+  -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
+  -- call stack level the log message was issued.
+  function fk_no_level    return number   deterministic;
+  function fk_cache       return number   deterministic;
+  function fk_normal      return number   deterministic;
+  function fk_attention   return number   deterministic;
+  function fk_warning     return number   deterministic;
+  function fk_error       return number   deterministic;
+  function fk_severe      return number   deterministic;
+  function fk_critical    return number   deterministic;
+  function fk_force       return number   deterministic;
+  -- Log message scope, predefined constants
+  -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
+  function fk_anyone      return varchar2 deterministic;
+  function fk_developer   return varchar2 deterministic;
+  function fk_tester      return varchar2 deterministic;
+  function fk_admin       return varchar2 deterministic;
+  function fk_operations  return varchar2 deterministic;
+  function fk_user        return varchar2 deterministic;
+  function fk_keyuser     return varchar2 deterministic;
 
   -- ---------------------------------------------------------------------------------------------
   -- Public function get the log level active in this session
@@ -152,9 +155,9 @@ as
   --       this should not be used when called from another package.
   procedure log_msg
     (pi_msg     in varchar2
-    ,pi_level   in number   := c_no_level
-    ,pi_type    in varchar2 := c_info
-    ,pi_scope   in varchar2 := c_anyone
+    ,pi_level   in number   := fk_no_level
+    ,pi_type    in varchar2 := fk_info
+    ,pi_scope   in varchar2 := fk_anyone
     ,pi_tags    in varchar2 := null
     ,pi_log_opt in number   := 0
     );
@@ -172,7 +175,7 @@ as
   -- Allowed values for p_rate: between 1 and 1000 (inclusive). When an
   -- invalid value is specified the default 50 messages / second is used.
   function set_max_log_rate
-    (pi_rate  in number := 50)
+    (pi_rate  in number := null)
   return number;
 
   -- ---------------------------------------------------------------------------------------------
@@ -210,7 +213,7 @@ as
   -- - <0      = maximum characters from END of the string of serialized cached messages
   -- When the messages are truncated an ellipsis (...) is added in the begin or the end.
   function get_cached_msg
-    (pi_flush      in varchar2 := c_no
+    (pi_flush      in varchar2 := hmx_utl.k_no
     ,pi_max_length in number   := null
     )
   return varchar2;

@@ -21,6 +21,17 @@ is
 
     k_anonymous_block constant varchar2(50) := lower('__anonymous_block'); -- default, see from oracle documentation
 
+    -- type to pass all info from the UTL_CALL_STACK functionality
+    type t_called_from_info_rec is record
+        (object_owner   varchar2(128 char)
+        ,object_type    varchar2(128 char)
+        ,object_name    varchar2(128 char)
+        ,object_method  varchar2(128 char)
+        ,object_line    number(5,0)
+        ,dynamic_depth  number(5,0)
+        ,call_depth     number(5,0)
+        );
+
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the object name and line number where this was called from.
     -- Parameters:
