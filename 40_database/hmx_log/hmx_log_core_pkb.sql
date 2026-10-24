@@ -8,12 +8,12 @@ as
 .HMX_OBJECT_NOTES:
     Package must be DEFINER rights (AUTHID DEFINER)
 
-.HMX_DEVELOPER_NOTES: 
+.HMX_DEVELOPER_NOTES:
     See HMX General Developer Notes
     Package is only accessible by package HMO_LOG.
     Function is AUTONOMOUS TRANSACTION.
 
-.HMX_OBJECT_VERSION: 2026-10-23 10:34:47 +02:00
+.HMX_OBJECT_VERSION: 2026-10-24 16:40:56 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -34,12 +34,13 @@ as
       ,log_type            -- varchar2(8 char)
       ,log_level           -- number(3,0)
       ,log_scope           -- varchar2(10 char)
---      ,log_tags            -- varchar2(200 char)  -- TODO
+      ,log_tags            -- varchar2(200 char)
       ,log_org_owner       -- varchar2(128 char)
       ,log_org_object      -- varchar2(128 char)
+      ,log_org_type        -- varchar2(128 char)
       ,log_org_method      -- varchar2(128 char)
       ,log_org_line        -- number(7,0)
---      ,log_call_depth      -- number(5,0)         -- TODO
+      ,log_call_depth      -- number(5,0)
       ,log_process         -- varchar2(100 char)
       ,log_sqlerrm         -- varchar2(512 char)
       ,log_sqlcode         -- number
@@ -51,7 +52,7 @@ as
       ,log_dbschema        -- varchar2(30 char)
       ,log_dbuser          -- varchar2(30 char)
       ,log_osuser          -- varchar2(30 char)
---      ,log_app_user        -- varchar2(128 char)  -- TODO
+      ,log_app_user        -- varchar2(128 char)
       )
     values
       (p_hmx_log_rec.log_msg
@@ -59,12 +60,13 @@ as
       ,p_hmx_log_rec.log_type
       ,p_hmx_log_rec.log_level
       ,p_hmx_log_rec.log_scope
---      ,p_hmx_log_rec.log_tags     -- TODO
+      ,p_hmx_log_rec.log_tags
       ,p_hmx_log_rec.log_org_owner
       ,p_hmx_log_rec.log_org_object
+      ,p_hmx_log_rec.log_org_type
       ,p_hmx_log_rec.log_org_method
       ,p_hmx_log_rec.log_org_line
---      ,p_hmx_log_rec.log_call_depth   -- TODO
+      ,p_hmx_log_rec.log_call_depth
       ,p_hmx_log_rec.log_process
       ,p_hmx_log_rec.log_sqlerrm
       ,p_hmx_log_rec.log_sqlcode
@@ -76,7 +78,7 @@ as
       ,p_hmx_log_rec.log_dbschema
       ,p_hmx_log_rec.log_dbuser
       ,p_hmx_log_rec.log_osuser
---      ,p_hmx_log_rec.log_app_user     -- TODO
+      ,p_hmx_log_rec.log_app_user
       )
     return log_pkid into l_log_pkid;
 

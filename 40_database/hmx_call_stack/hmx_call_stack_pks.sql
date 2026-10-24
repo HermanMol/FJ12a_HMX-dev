@@ -11,7 +11,7 @@ is
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 +02:00
+.HMX_OBJECT_VERSION: 2026-10-24 12:19:36 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -20,6 +20,7 @@ is
 -- -------------------------------------------------------------------------------------------------
 
     k_anonymous_block constant varchar2(50) := lower('__anonymous_block'); -- default, see from oracle documentation
+    k_pkg_init        constant varchar2(50) := upper('__pkg_init');        -- the Oracle defined name for the package initialization
 
     -- type to pass all info from the UTL_CALL_STACK functionality
     type t_called_from_info_rec is record
@@ -31,6 +32,17 @@ is
         ,dynamic_depth  number(5,0)
         ,call_depth     number(5,0)
         );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns all details where this was called from.
+    -- Parameters:
+    -- - i_skip_units = optional comma-separated list of object-names to ignore when retrieving
+    --     the object that called this function. this to enable calling this function from a logging
+    --     module and ignoring that logging module entry in the call stack.
+    function get_called_from_details
+        (i_skip_units in varchar2 := null
+        )
+    return t_called_from_info_rec;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the object name and line number where this was called from.

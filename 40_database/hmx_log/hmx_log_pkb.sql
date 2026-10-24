@@ -10,7 +10,7 @@ as
     ...
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-23 10:34:47 +02:00
+.HMX_OBJECT_VERSION: 2026-10-24 16:38:10 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -120,6 +120,7 @@ as
     pio_hmx_log_rec.log_app_user   := get_app_user;
     pio_hmx_log_rec.log_org_owner  := $$plsql_unit_owner;
     pio_hmx_log_rec.log_org_object := $$plsql_unit;
+    pio_hmx_log_rec.log_org_type   := null;
     pio_hmx_log_rec.log_org_method := 'BP_INIT_hmx_log_DATA_RECORD';
     pio_hmx_log_rec.log_org_line   := $$plsql_line;
     pio_hmx_log_rec.log_call_depth := 0;
@@ -189,89 +190,6 @@ as
     select max(log_pkid) into l_last_seq from hmx_log_data;
     return nvl(l_last_seq,-1);
   end bf_get_last_log_seq;
-
-  -- -----------------------------------------------------------------------------------------------
-  -- private function that returns the source origin location
-  function bf_get_calling_origin
-  return hmx_call_stack.t_called_from_info_rec
-  as
-    l_idx             pls_integer;
-    l_origin          varchar2(32767);
-    l_current_unit    varchar2(32767);
-    l_dynamic_depth   pls_integer;
-    l_part_a          varchar2(32767);  -- log_org_object
-    l_part_b          varchar2(32767);  -- log_org_method
-    l_part_c          varchar2(32767);
-    l_dblink          varchar2(128);
-    l_nextpos         binary_integer;
-
-    l_called_from_info  hmx_call_stack.t_called_from_info_rec;
-
-  begin
-    l_called_from_info.object_owner  := null;
-    l_called_from_info.object_type   := null;
-    l_called_from_info.object_name   := null;
-    l_called_from_info.object_method := null;
-    l_called_from_info.object_line   := null;
-    l_called_from_info.dynamic_depth := null;
-    l_called_from_info.call_depth    := null;
-
-    l_dynamic_depth := nvl(utl_call_stack.dynamic_depth,0);
-    l_called_from_info.dynamic_depth := l_dynamic_depth;
-    <<walk_call_stack>>
-    for l_idx in 1 .. l_dynamic_depth
-    loop
-      l_current_unit := upper(utl_call_stack.concatenate_subprogram(utl_call_stack.subprogram(l_idx) ) );
-      -- prt('*D: l_current_unit=' || nvlc(l_current_unit) || '.');
-      -- Example output:
-      --   *D: l_current_unit=hmx_log.bf_get_calling_origin.
-      --   *D: l_current_unit=hmx_log.LOG_MSG.
-      --   *D: l_current_unit=hmx_log.__PKG_INIT.
-      --   *D: l_current_unit=__ANONYMOUS_BLOCK.
-      --   *D: l_current_unit=hmx_log.bf_get_calling_origin.
-      --   *D: l_current_unit=hmx_log.LOG_MSG.
-      --   *D: l_current_unit=__ANONYMOUS_BLOCK.
-      if  l_current_unit not like $$PLSQL_UNIT || '.%'    -- skip stack entries from this package
-      and l_current_unit not like 'CLE_BLG'    || '.%'    -- skip stack entries from old and still used logging tools
-      and l_current_unit not like 'EDB_BLG'    || '.%'    -- skip stack entries from test for new version of CLE_BLG
-      then
-        if upper(l_current_unit) like k_anonymous
-        or upper(l_current_unit) like k_anonymous || '.%'
-        then
-          l_called_from_info.object_name := substr(l_current_unit,1,128);
-        elsif upper(l_current_unit) like k_pkg_init
-        or    upper(l_current_unit) like '%.' || k_pkg_init
-        then
-          l_called_from_info.object_owner := substr(utl_call_stack.owner(l_idx),1,128);
-          l_called_from_info.object_name  := substr(l_current_unit,1,128);
-        else
-          l_called_from_info.object_owner := substr(utl_call_stack.owner(l_idx),1,128);
-          dbms_utility.name_tokenize
-            (name    => l_current_unit
-            ,a       => l_part_a   -- out
-            ,b       => l_part_b   -- out
-            ,c       => l_part_c   -- out
-            ,dblink  => l_dblink   -- out
-            ,nextpos => l_nextpos  -- out
-            );
-          l_called_from_info.object_name   := substr(nvl(l_part_a,'???'),1,128);
-          l_called_from_info.object_method := substr(nvl(l_part_b,'???'),1,128);
-        end if;
-        l_called_from_info.object_line  := utl_call_stack.unit_line (l_idx);
-        l_called_from_info.call_depth  := l_idx;
-        -- object_type  varchar2(128) is unfortunately not available on the call stack(? oracle 19?)
-        exit walk_call_stack;       -- because we found the first non-logging module
-      end if;
-    end loop walk_call_stack;
-
-    if  l_dynamic_depth < 1
-    and l_called_from_info.object_name is null
-    then
-      l_called_from_info.object_name := '*W: ' || $$PLSQL_UNIT || '@' || $$PLSQL_LINE || ' dynamic depth < 1';
-    end if;
-
-    return l_called_from_info;
-  end bf_get_calling_origin;
 
   -- ---------------------------------------------------------------------------------------------
   -- Public function get the log level active in this session
@@ -443,12 +361,13 @@ as
   --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
   --       this should not be used when called from another package. TYPE will be set to LOGGING
   procedure log_msg
-    (pi_msg     in varchar2
-    ,pi_level   in number   := fk_no_level
-    ,pi_type    in varchar2 := fk_info
-    ,pi_scope   in varchar2 := fk_anyone
-    ,pi_tags    in varchar2 := null
-    ,pi_log_opt in number   := 0
+    (pi_msg         in varchar2
+    ,pi_level       in number   := fk_no_level
+    ,pi_type        in varchar2 := fk_info
+    ,pi_scope       in varchar2 := fk_anyone
+    ,pi_tags        in varchar2 := null
+    ,pi_log_opt     in number   := 0
+    ,pi_object_type in varchar2 := null
     )
   is
     l_in_exception_handling varchar2(1) := hmx_utl.k_no;
@@ -465,6 +384,8 @@ as
 
   begin
 
+    bp_init_hmx_log_data_record(l_hmx_log_rec);
+
     if sqlcode <> 0
     then
       l_in_exception_handling := hmx_utl.k_yes;
@@ -479,56 +400,20 @@ as
     -- *skip       gdb_tools.hmx_log_ctx_api.log_context_values(pi_text => 'LOG_MSG');
     -- *skip     end if;
 
-    l_log_opt := pi_log_opt;
+    l_log_opt := pi_log_opt;    -- TODO
 
-    if pi_level = fk_cache
-    then
-      -- cache the messagewith the other arguments and the last issued log_pkid
-      cache_msg(pi_msg || '(' || pi_type || ',' || pi_scope || ',' || pi_tags || '#' || bf_get_last_log_seq|| ')' );
-      return; -- no other processing
-    end if;
-
-    -- check the level to be logged. If no level was set then the default minimum is warning
---    l_minimum_level := nvl(sys_context(hmx_log_ctx_api.c_ebdlog_ctx,hmx_log_ctx_api.c_min_log_lvl),fk_warning);
-    l_minimum_level := s_minimum_log_level;
-
-    if  pi_level < l_minimum_level
-    then
-      if bitand(l_log_opt,k_force_logging) = k_force_logging  -- forced, so TYPE will be LOGGING
-      then
-        l_log_type := fk_logging;
-      else
-        -- ignore
-        l_log_type := null;
-        return;
-      end if;
-    end if;
-
-    -- check the maximum log rate = messages logged per second not above maximum
-    l_now := systimestamp at time zone 'UTC';
-    l_since := round(extract(second from l_now - s_last_logtime),2);
-    if l_since > k_1_second
-    then -- more than 1 second ago, reset the counter
-      s_cnt_msg_written := 0;
-    end if;
-    s_cnt_msg_written := s_cnt_msg_written + 1;
-    if s_cnt_msg_written > s_max_log_rate
-    then
-      s_cnt_msg_skipped := s_cnt_msg_skipped + 1;
-      return;
-    end if;
-    if s_cnt_msg_written = s_max_log_rate
-    then
-      l_logging_msg := 'hmx_log#1 - Maximum log_rate ' || s_max_log_rate || '/second reached; logging temporarily suppressed!';
-    end if;
-    if s_cnt_msg_skipped > 0
-    then
-      l_logging_msg := 'hmx_log#2 - Attention: ' || s_cnt_msg_skipped || ' log messages where suppressed.';
-      s_cnt_msg_skipped := 0;
-    end if;
-
-    -- OK, prepare the log data
-    bp_init_hmx_log_data_record(pio_hmx_log_rec => l_hmx_log_rec);
+    l_called_from_info := hmx_call_stack.get_called_from_details(i_skip_units => $$plsql_unit);
+    l_hmx_log_rec.log_msg             := pi_msg;
+    l_hmx_log_rec.log_type            := pi_type;
+    l_hmx_log_rec.log_level           := pi_level;
+    l_hmx_log_rec.log_scope           := pi_scope;
+    l_hmx_log_rec.log_tags            := pi_tags;
+    l_hmx_log_rec.log_org_owner       := l_called_from_info.object_owner;
+    l_hmx_log_rec.log_org_object      := l_called_from_info.object_name;
+    l_hmx_log_rec.log_org_method      := l_called_from_info.object_method;
+    l_hmx_log_rec.log_org_line        := l_called_from_info.object_line;
+    l_hmx_log_rec.log_call_depth      := l_called_from_info.call_depth;
+    
     if l_in_exception_handling = hmx_utl.k_yes
     then
       l_hmx_log_rec.log_sqlcode := sqlcode;
@@ -552,44 +437,31 @@ as
       l_hmx_log_rec.log_call_stack := nvl(substr(dbms_utility.format_call_stack(),1,4000),'(none)');
     end if;
 
-    l_hmx_log_rec.log_type     := substr(coalesce(l_log_type,pi_type,fk_info),1,8);
-    l_hmx_log_rec.log_level    := coalesce(pi_level,fk_no_level);
-    l_hmx_log_rec.log_scope    := substr(coalesce(pi_scope,fk_anyone),1,10);
---    l_hmx_log_rec.log_tags     := substr(coalesce(pi_tags,nullif(';'||sys_context(hmx_log_ctx_api.c_ebdlog_ctx,hmx_log_ctx_api.c_log_tag),';')), 1,200);
-    l_hmx_log_rec.log_tags     := substr(nullif(s_tags||';',';')||pi_tags, 1,200);
-    l_hmx_log_rec.log_msg      := substr(pi_msg, 1,4000);
-
-    l_called_from_info := bf_get_calling_origin();
-    l_hmx_log_rec.log_org_owner  := l_called_from_info.object_owner;
-    l_hmx_log_rec.log_org_object := l_called_from_info.object_name;
-    l_hmx_log_rec.log_org_method := l_called_from_info.object_method;
-    l_hmx_log_rec.log_org_line   := l_called_from_info.object_line;
-    l_hmx_log_rec.log_call_depth := l_called_from_info.call_depth;
-
-    if  bitand(l_log_opt,k_add_cached_msg) = k_add_cached_msg
-    or  (   l_in_exception_handling = hmx_utl.k_yes
-        and l_hmx_log_rec.log_scope not in (fk_user, fk_keyuser)
-        )
+    -- The object_type is not available in the UTL_CALL_STACK data ...
+    -- But we need it for SQL Developer SDEV_LINK_TYPE ...
+    if l_hmx_log_rec.log_org_type is null
     then
-      -- add the end of the cached messages to the log message for as much space is available (max 4000 characters)
-      l_txt_cached_msg := k_lf || get_cached_msg
-                                    (pi_flush      => hmx_utl.k_yes
-                                    ,pi_max_length => -1 * (4000 - length(l_hmx_log_rec.log_msg || k_lf) )
-                                    );
-      l_hmx_log_rec.log_msg := l_hmx_log_rec.log_msg || l_txt_cached_msg;
+        <<get_object_type>>
+        begin
+            select object_type
+            into l_hmx_log_rec.log_org_type
+            from all_objects
+            where oracle_maintained = 'N'
+            and owner       = l_hmx_log_rec.log_org_owner 
+            and object_name = l_hmx_log_rec.log_org_object
+            and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION')
+            order by object_type desc
+            fetch first 1 rows only;
+        exception
+            when no_data_found
+            then
+                l_hmx_log_rec.log_org_type := '-';
+        end get_object_type;
     end if;
-
-    if sys_context('USERENV','SESSION_USER') = 'APEX_PUBLIC_USER'
-    then
-      -- Add APEX app_id and app_page_id to the tags
-      null;
-      l_hmx_log_rec.log_tags := substr(nullif(l_hmx_log_rec.log_tags||';',';') || 'APEX' || ':' || v('APP_ID') || ':' ||v('APP_PAGE_ID'), 1,200);
-    end if;
-
     -- insert the logging into the hmx_log_DATA table
     l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
 
-    if l_logging_msg is not null
+    if l_logging_msg is not null    -- TODO what is this for
     then
       l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
       l_hmx_log_rec.log_type := fk_logging;

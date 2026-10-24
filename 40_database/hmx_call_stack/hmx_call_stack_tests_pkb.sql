@@ -33,6 +33,14 @@ as
     exception
         when others
         then
+            hmx_log.log_msg
+                (pi_msg     => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_level   => hmx_log.k_error
+                ,pi_type    => hmx_log.k_testing
+                ,pi_scope   => hmx_log.k_tester
+                ,pi_tags    => 'FJ12a,HMX-dev'
+                ,pi_log_opt => 0 --hmx_log.k_force
+                );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!

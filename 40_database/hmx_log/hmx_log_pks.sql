@@ -154,12 +154,13 @@ as
   --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
   --       this should not be used when called from another package.
   procedure log_msg
-    (pi_msg     in varchar2
-    ,pi_level   in number   := fk_no_level
-    ,pi_type    in varchar2 := fk_info
-    ,pi_scope   in varchar2 := fk_anyone
-    ,pi_tags    in varchar2 := null
-    ,pi_log_opt in number   := 0
+    (pi_msg         in varchar2
+    ,pi_level       in number   := fk_no_level
+    ,pi_type        in varchar2 := fk_info
+    ,pi_scope       in varchar2 := fk_anyone
+    ,pi_tags        in varchar2 := null
+    ,pi_log_opt     in number   := 0
+    ,pi_object_type in varchar2 := null
     );
 
   -- ---------------------------------------------------------------------------------------------
