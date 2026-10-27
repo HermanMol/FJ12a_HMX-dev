@@ -14,9 +14,10 @@
       set feedback off
       set termout off
       set newpage none
+      set heading off
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-27 11:35:35 +01:00
+.HMX_OBJECT_VERSION: 2026-10-27 17:02:50 +01:00
 .HMX_SQLCL_VERSION: 26.3.0.0 build: 26.3.0.260.1620
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
@@ -48,5 +49,6 @@ select '*I: Current session settings (' || to_char(sysdate,'yyyy-mm-dd hh24:mi:s
     || chr(10) || '    - PLATFORM_SLASH.........: ' || sys_context('USERENV', 'PLATFORM_SLASH')
     || chr(10) || '    - Monday day-of-week.....: ' || to_char(to_date('20210913','yyyymmdd'),'d "("dd-mm-yyyy")"')
     || chr(10) || '    - Numeric characters.....: ' || trim(to_char(123456789 / 1000,'999g999g990d9999') )
+    as cmd
 from dual
 /

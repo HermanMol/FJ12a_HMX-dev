@@ -4,7 +4,6 @@ prompt *I: ScriptBOF hmx_utl_pkg_tests.sql
 
 prompt *A: ***** WIP hmx_utl_pkg_tests.sql *****
 
-set echo off
 @hmx_session_info
 
 declare
