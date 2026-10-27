@@ -56,6 +56,16 @@ is
     return varchar2;
 
     -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the object name and line number where this was called from.
+    -- Parameters:
+    -- - pi_log_pkid = Required, primary key of the HMX_LOG record where to return the object and
+    --     line number.
+    function get_called_from_formatted
+        (pi_log_pkid in hmx_log_data.log_pkid%type
+        )
+    return varchar2;
+
+    -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the backtrace as a LF-separated string.
     -- Only usefull during exception handling.
     -- In the absence of an exception the returned value is "(No backtrace)".

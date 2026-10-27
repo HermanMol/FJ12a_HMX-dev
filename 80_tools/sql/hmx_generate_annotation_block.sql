@@ -63,3 +63,5 @@ exception
         prt('*E: ' || sqlerrm);
 end;
 /
+prompt .HMX_OBJECT_VERSION:
+version

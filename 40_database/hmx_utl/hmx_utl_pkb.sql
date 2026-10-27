@@ -200,7 +200,7 @@ as
     as
         l_case_sensitive varchar2(1);
     begin
-        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
+        hmx_log.log_msg('*D: ' || hmx_call_stack.get_called_from);
 
         l_case_sensitive := upper(substr(pi_case,1,1));
         if l_case_sensitive not in (k_case_sensitive, k_case_insensitive)
@@ -229,7 +229,7 @@ as
     exception
         when others
         then
-            gdblog.log_msg('*E: chr3 - ' || sqlerrm);
+            hmx_log.log_msg('*E: chr3 - ' || sqlerrm);
             return -1;
     end is_equal;  -- varchar2-s, option case sensitive
     -- Overload for character data, with default case insensitive
@@ -242,7 +242,7 @@ as
     deterministic
     as
     begin
-        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
+        hmx_log.log_msg('*D: ' || hmx_call_stack.get_called_from);
         return is_equal(pi_char1 , pi_char2, k_case_insensitive);
     end is_equal;  -- varchar2-s, default case insensitive
     -- Overload for numeric data.
@@ -255,7 +255,7 @@ as
     deterministic
     as
     begin
-        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
+        hmx_log.log_msg('*D: ' || hmx_call_stack.get_called_from);
         if  pi_num1 is null
         and pi_num2 is null
         then
@@ -268,7 +268,7 @@ as
     exception
         when others
         then
-            gdblog.log_msg('*E: num - ' || sqlerrm);
+            hmx_log.log_msg('*E: num - ' || sqlerrm);
             return -1;
     end is_equal;  -- numbers
     -- Overload for date+time data.
@@ -281,7 +281,7 @@ as
     deterministic
     as
     begin
-        gdblog.log_msg('*D: ' || hmx_call_stack.get_called_from);
+        hmx_log.log_msg('*D: ' || hmx_call_stack.get_called_from);
         if   pi_date1 is null
         and pi_date2 is null
         then
@@ -294,7 +294,7 @@ as
     exception
         when others
         then
-            gdblog.log_msg('*E: date - ' || sqlerrm);
+            hmx_log.log_msg('*E: date - ' || sqlerrm);
             return -1;
     end is_equal;  -- dates
 
@@ -338,12 +338,12 @@ as
     -- Public function returning a string "Yes" or "No" depending on the input.
     -- If not "Yes" or "No", then "???" is returned.
     function f_yes_no
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_no  then 'No'
                 when k_yes then 'Yes'
                 else '???'
@@ -351,12 +351,12 @@ as
     end f_yes_no;
     -- overload for numeric boolean
     function f_yes_no
-                (i_val  in pls_integer)
+                (pi_val  in pls_integer)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_bno  then 'No'
                 when k_byes then 'Yes'
                 else '???'
@@ -367,12 +367,12 @@ as
     -- Public function returning a string "True" or "False" depending on the input.
     -- If not "True" or "False", then "???" is returned.
     function f_true_false
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_true  then 'True'
                 when k_false then 'False'
                 else '???'
@@ -380,12 +380,12 @@ as
     end f_true_false;
     -- overload for numeric boolean
     function f_true_false
-        (i_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_btrue  then 'True'
                 when k_bfalse then 'False'
                 else '???'
@@ -396,12 +396,12 @@ as
     -- Public function returning a string "Pass" or "Fail" depending on the input.
     -- If not "Pass" or "Fail", then "???" is returned.
     function f_pass_fail
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_pass then 'Pass'
                 when k_fail then 'Fail'
                 else '???'
@@ -409,12 +409,12 @@ as
     end f_pass_fail;
     -- overload for numeric boolean
     function f_pass_fail
-        (i_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_bpass then 'Pass'
                 when k_bfail then 'Fail'
                 else '???'
@@ -425,12 +425,12 @@ as
     -- Public function returning a string "OK" or "Not OK" depending on the input.
     -- If not "OK" or "Not OK", then "???" is returned.
     function f_ok_not_ok
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_ok  then 'OK'
                 when k_nok then 'Not OK'
                 else '???'
@@ -441,12 +441,12 @@ as
     -- Public function returning a string "Success" or "Failed" depending on the input.
     -- If not "Success" or "Failed", then "???" is returned.
     function f_success_failed
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic
     as
     begin
-        return case i_val
+        return case pi_val
                 when k_success then 'Success'
                 when k_failed  then 'Failed'
                 else '???'

@@ -22,7 +22,7 @@ as
   -- ---------------------------------------------------------------------------------------------
   -- Public function performing the actual insert AUTONOMOUS_TRANSACTION
   function insert_hmx_log_data
-    (p_hmx_log_rec in hmx_log_data%rowtype)
+    (pi_hmx_log_rec in hmx_log_data%rowtype)
   return number
   is
     pragma autonomous_transaction;
@@ -55,30 +55,30 @@ as
       ,log_app_user        -- varchar2(128 char)
       )
     values
-      (p_hmx_log_rec.log_msg
-      ,p_hmx_log_rec.log_time
-      ,p_hmx_log_rec.log_type
-      ,p_hmx_log_rec.log_level
-      ,p_hmx_log_rec.log_scope
-      ,p_hmx_log_rec.log_tags
-      ,p_hmx_log_rec.log_org_owner
-      ,p_hmx_log_rec.log_org_object
-      ,p_hmx_log_rec.log_org_type
-      ,p_hmx_log_rec.log_org_method
-      ,p_hmx_log_rec.log_org_line
-      ,p_hmx_log_rec.log_call_depth
-      ,p_hmx_log_rec.log_process
-      ,p_hmx_log_rec.log_sqlerrm
-      ,p_hmx_log_rec.log_sqlcode
-      ,p_hmx_log_rec.log_call_stack
-      ,p_hmx_log_rec.log_error_backtrace
-      ,p_hmx_log_rec.log_sesid
-      ,p_hmx_log_rec.log_server
-      ,p_hmx_log_rec.log_dbname
-      ,p_hmx_log_rec.log_dbschema
-      ,p_hmx_log_rec.log_dbuser
-      ,p_hmx_log_rec.log_osuser
-      ,p_hmx_log_rec.log_app_user
+      (pi_hmx_log_rec.log_msg
+      ,pi_hmx_log_rec.log_time
+      ,pi_hmx_log_rec.log_type
+      ,pi_hmx_log_rec.log_level
+      ,pi_hmx_log_rec.log_scope
+      ,pi_hmx_log_rec.log_tags
+      ,pi_hmx_log_rec.log_org_owner
+      ,pi_hmx_log_rec.log_org_object
+      ,pi_hmx_log_rec.log_org_type
+      ,pi_hmx_log_rec.log_org_method
+      ,pi_hmx_log_rec.log_org_line
+      ,pi_hmx_log_rec.log_call_depth
+      ,pi_hmx_log_rec.log_process
+      ,pi_hmx_log_rec.log_sqlerrm
+      ,pi_hmx_log_rec.log_sqlcode
+      ,pi_hmx_log_rec.log_call_stack
+      ,pi_hmx_log_rec.log_error_backtrace
+      ,pi_hmx_log_rec.log_sesid
+      ,pi_hmx_log_rec.log_server
+      ,pi_hmx_log_rec.log_dbname
+      ,pi_hmx_log_rec.log_dbschema
+      ,pi_hmx_log_rec.log_dbuser
+      ,pi_hmx_log_rec.log_osuser
+      ,pi_hmx_log_rec.log_app_user
       )
     return log_pkid into l_log_pkid;
 

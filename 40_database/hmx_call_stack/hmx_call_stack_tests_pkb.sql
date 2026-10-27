@@ -34,12 +34,12 @@ as
         when others
         then
             hmx_log.log_msg
-                (pi_msg     => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
-                ,pi_level   => hmx_log.k_error
-                ,pi_type    => hmx_log.k_testing
-                ,pi_scope   => hmx_log.k_tester
-                ,pi_tags    => 'FJ12a,HMX-dev'
-                ,pi_log_opt => 0 --hmx_log.k_force
+                (pi_log_msg   => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_log_level => hmx_log.k_error
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
                 );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
@@ -72,6 +72,14 @@ as
     exception
         when others
         then
+            hmx_log.log_msg
+                (pi_log_msg   => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_log_level => hmx_log.k_error
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
+                );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
@@ -103,6 +111,14 @@ as
     exception
         when others
         then
+            hmx_log.log_msg
+                (pi_log_msg   => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_log_level => hmx_log.k_error
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
+                );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
@@ -134,6 +150,14 @@ as
     exception
         when others
         then
+            hmx_log.log_msg
+                (pi_log_msg   => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_log_level => hmx_log.k_error
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
+                );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
@@ -155,6 +179,15 @@ as
     procedure p_main
     as
     begin
+        hmx_log.log_msg
+            (pi_log_msg   => 'Start running P_MAIN'
+            ,pi_log_level => hmx_log.k_normal
+            ,pi_log_type  => hmx_log.k_testing
+            ,pi_log_scope => hmx_log.k_tester
+            ,pi_log_tags  => 'FJ12a,HMX-dev'
+            ,pi_log_opt   => 0 --hmx_log.k_force
+            );
+
         prt('*I: Begin ' || $$plsql_unit || '.P_MAIN @ 2026-10-15 14:01:20');
 
         -- Next statement calls the hmx_call_stack.get_called_from (which itself will be skipped in the call-stack scanning).
@@ -165,11 +198,27 @@ as
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         p_01;
 
+        hmx_log.log_msg
+            (pi_log_msg   => 'Finish running P_MAIN'
+            ,pi_log_level => hmx_log.k_normal
+            ,pi_log_type  => hmx_log.k_testing
+            ,pi_log_scope => hmx_log.k_tester
+            ,pi_log_tags  => 'FJ12a,HMX-dev'
+            ,pi_log_opt   => 0 --hmx_log.k_force
+            );
         prt('*I: End ' || $$plsql_unit || '.P_MAIN');
 
     exception
         when others
         then
+            hmx_log.log_msg
+                (pi_log_msg   => 'This is error ' || sqlcode || ' in ' || $$plsql_unit || ' on line ' || $$plsql_line || '.'
+                ,pi_log_level => hmx_log.k_error
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
+                );
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
@@ -180,6 +229,14 @@ as
             prt('FORMAT_ERROR_BACKTRACE' || chr(10) || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
             prt('FORMAT_ERROR_STACK'     || chr(10) || DBMS_UTILITY.FORMAT_ERROR_STACK);
             prt('*I: End ' || $$plsql_unit || '.P_MAIN');
+            hmx_log.log_msg
+                (pi_log_msg   => 'Exception running P_MAIN'
+                ,pi_log_level => hmx_log.k_warning
+                ,pi_log_type  => hmx_log.k_testing
+                ,pi_log_scope => hmx_log.k_tester
+                ,pi_log_tags  => 'FJ12a,HMX-dev'
+                ,pi_log_opt   => 0 --hmx_log.k_force
+                );
             raise;
     end p_main;
 end hmx_call_stack_tests;

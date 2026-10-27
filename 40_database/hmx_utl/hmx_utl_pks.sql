@@ -235,11 +235,11 @@ as
     -- Public function returning a string "Yes" or "No" depending on the input.
     -- If not "Yes" or "No", then "???" is returned.
     function f_yes_no
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic;
     function f_yes_no
-        (i_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic;
 
@@ -247,11 +247,11 @@ as
     -- Public function returning a string "True" or "False" depending on the input.
     -- If not "True" or "False", then "???" is returned.
     function f_true_false
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic;
     function f_true_false
-        (i_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic;
 
@@ -259,11 +259,11 @@ as
     -- Public function returning a string "Pass" or "Fail" depending on the input.
     -- If not "Pass" or "Fail", then "???" is returned.
     function f_pass_fail
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic;
     function f_pass_fail
-        (i_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic;
 
@@ -271,7 +271,7 @@ as
     -- Public function returning a string "OK" or "Not OK" depending on the input.
     -- If not "OK" or "Not OK", then "???" is returned.
     function f_ok_not_ok
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic;
 
@@ -279,7 +279,7 @@ as
     -- Public function returning a string "Success" or "Failed" depending on the input.
     -- If not "Success" or "Failed", then "???" is returned.
     function f_success_failed
-        (i_val  in varchar2)
+        (pi_val  in varchar2)
     return varchar2
     deterministic;
 

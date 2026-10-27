@@ -1,5 +1,8 @@
 prompt *I: ScriptBOF hmx_log_pkg_all_install.sql
 
+@@hmx_log_data_seq.sql
+@@hmx_log_data_tbl.sql
+
 @@hmx_log_core_pks.sql
 
 @@hmx_log_pks.sql
@@ -20,6 +23,6 @@ prompt *I: ScriptBOF hmx_log_pkg_all_install.sql
 --Prompt: *I: Errors for package body hmx_log_core
 --show errors package body hmx_log
 
-@recompile_invalid_all
+@hmx_recompile_invalid_all
 
 prompt *I: ScriptEOF hmx_log_pkg_all_install.sql

@@ -1,5 +1,7 @@
 prompt *I: ScriptBOF trimws_test.sql
-@hmx_spoolstart trimws_test.sql
+
+prompt *I: Test operator trimws - Start
+
 with test_data as
 (
     select 1 as nr, 'none' as ws, 'a' as col1, 'b' as col2, 'c' as col3 from dual
@@ -30,5 +32,7 @@ select nr
     ,'(#'||rownum||')' as rijnr
 from test_data
 /
-@hmx_spoolfinish
+
+prompt *I: Test operator trimws - End
+
 prompt *I: ScriptEOF trimws_test.sql

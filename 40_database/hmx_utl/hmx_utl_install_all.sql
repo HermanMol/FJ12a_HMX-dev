@@ -2,10 +2,6 @@ prompt *I: ScriptBOF hmx_utl_install_all.sql
 
 @@prt_prc.sql
 
-@@hmx_utl_pks.sql
-
-@@hmx_utl_pkb.sql
-
-show errors
+@@hmx_utl_pkg_install.sql
 
 prompt *I: ScriptEOF hmx_utl_install_all.sql

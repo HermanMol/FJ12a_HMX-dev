@@ -24,7 +24,7 @@ as
   -- ---------------------------------------------------------------------------------------------
   -- public function performing the actual insert AUTONOMOUS_TRANSACTION
   function insert_hmx_log_data
-    (p_hmx_log_rec in hmx_log_data%rowtype)
+    (pi_hmx_log_rec in hmx_log_data%rowtype)
   return number;
 
 end hmx_log_core;

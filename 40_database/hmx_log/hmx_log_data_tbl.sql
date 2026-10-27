@@ -1,4 +1,4 @@
-prompt *I: ScriptBOF hmx_log_tbl.sql
+prompt *I: ScriptBOF hmx_log_data_tbl.sql
 
 drop table if exists hmx_log_data  cascade constraints purge
 /
@@ -103,4 +103,4 @@ comment on column hmx_log_data.log_dbuser          is 'The value of SYS_CONTEXT(
 comment on column hmx_log_data.log_osuser          is 'The value of SYS_CONTEXT(USERENV,OS_USER).';
 comment on column hmx_log_data.log_app_user        is 'The Application user, like in APEX the v(app_user).';
 
-prompt *I: ScriptEOF tbl_hmx_log_data.sql
+prompt *I: ScriptEOF hmx_log_data_tbl.sql
