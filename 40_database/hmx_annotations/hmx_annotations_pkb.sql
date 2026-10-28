@@ -10,7 +10,7 @@ as
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-22 17:17:26 +02:00
+.HMX_OBJECT_VERSION: 2026-10-28 12:52:00 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -323,6 +323,37 @@ as
             end if;
             raise;
     end drop_oracle_annotation;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure that returns the object version - pipelined (from the annotations)
+    function get_object_version
+        (pi_owner       in varchar2
+        ,pi_object_name in varchar2
+        ,pi_object_type in varchar2 := null
+        )
+    return hmx_object_version_arr pipelined
+    as
+    begin
+        <<found_annotations>>
+        for r_line in
+        (   select owner
+                ,object_name
+                ,object_type
+                ,annotation_value
+            from hmx_all_annotations
+            where owner = pi_owner
+                and object_name = pi_object_name
+                and object_type = coalesce(pi_object_type,object_type)
+                and annotation_name = 'HMX_OBJECT_VERSION'
+            order by owner
+                ,object_name
+                ,object_type
+        )
+        loop
+            pipe row(r_line);
+        end loop found_annotations;
+        return;
+    end get_object_version;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

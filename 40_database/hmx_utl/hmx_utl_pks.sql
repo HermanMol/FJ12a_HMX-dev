@@ -8,11 +8,11 @@ as
 
 .HMX_OBJECT_NOTES: -
 
-.HMX_DEVELOPER_NOTES: 
+.HMX_DEVELOPER_NOTES:
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
 
-.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 +02:00
+.HMX_OBJECT_VERSION: 2026-10-28 12:23:40 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -67,6 +67,14 @@ as
     k_case_sensitive    constant varchar2(1) := 'C';
     k_case_insensitive  constant varchar2(1) := 'I';
 
+    -- minimum and maximum values for Oracle numbers and dates and two special dates: ratadie and year zero
+    k_ora_min_number constant number := power(10,-130);
+    k_ora_max_number constant number := power(10,125);
+    k_ora_min_date   constant date   := to_date('47120101BC000000', 'yyyymmddbchh24miss');
+    k_ora_max_date   constant date   := to_date('99991231235959'  , 'yyyymmddhh24miss'  );
+    k_ratadie        constant date   := to_date('00010101000000'  , 'yyyymmddhh24miss'  );
+    -- k_year_zero   constant date   := to_date('00000101000000'  , 'yyyymmddhh24miss'  ); ORA-01841: (full) year must be between -4713 and +9999, and not be 0
+
     -- Public constants implemented as deterministic functions so they can be used in queries
     function fk_no          return varchar2 deterministic;
     function fk_yes         return varchar2 deterministic;
@@ -112,6 +120,14 @@ as
 
     function fk_case_sensitive   return varchar2 deterministic;
     function fk_case_insensitive return varchar2 deterministic;
+
+    -- Minimum and maximum values for Oracle numbers and dates and two special dates: ratadie
+    function fk_ora_min_number return number deterministic;
+    function fk_ora_max_number return number deterministic;
+    function fk_ora_min_date   return date   deterministic;
+    function fk_ora_max_date   return date   deterministic;
+    function fk_ratadie        return date   deterministic;
+--  function fk_year_zero      return date   deterministic; ORA-01841: (full) year must be between -4713 and +9999, and not be 0
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to return the received character value or 'nill'
@@ -172,7 +188,7 @@ as
 
     -- ---------------------------------------------------------------------------------------------
     -- Public (overloaded) functions that return 1 if both arguments are equal including when both
-    -- arguments are NULL. Return 0 is the arguments differ. Return -1 if an error occurred.
+    -- arguments are NULL. Return 0 if the arguments differ. Return -1 if an error occurred.
     -- They are also equal if they are both NULL.
     --
     -- Base for character data, with option case sensitive('c') or insensitive('i') (like Oracles
@@ -225,6 +241,7 @@ as
     -- When this is not possible NULL is returned, NO exception is raised (it is ignored)
     -- When a null value is passed also a NULL is returned (garbage-in, garbage-out)
     -- Also available as a SQL Operator TO_NUM_VAL which can be used in a SQL query (only!)
+    -- Possible upgrade: add optional second argument with a numeric format to be used
     function to_num_val
         (pi_value   in varchar2
         )

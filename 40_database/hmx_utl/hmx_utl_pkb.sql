@@ -11,7 +11,7 @@ as
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
 
-.HMX_OBJECT_VERSION: 2026-10-21 12:17:12 +02:00
+.HMX_OBJECT_VERSION: 2026-10-28 12:23:49 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -63,6 +63,14 @@ as
     -- other constants
     function fk_case_sensitive    return varchar2 deterministic is begin return k_case_sensitive  ; end;
     function fk_case_insensitive  return varchar2 deterministic is begin return k_case_insensitive; end;
+
+    -- Minimum and maximum values for Oracle numbers and dates and two special dates: ratadie and year zero
+    function fk_ora_min_number return number deterministic is begin return k_ora_min_number; end;
+    function fk_ora_max_number return number deterministic is begin return k_ora_max_number; end;
+    function fk_ora_min_date   return date   deterministic is begin return k_ora_min_date  ; end;
+    function fk_ora_max_date   return date   deterministic is begin return k_ora_max_date  ; end;
+    function fk_ratadie        return date   deterministic is begin return k_ratadie       ; end;
+    -- function fk_year_zero   return date   deterministic is begin return k_year_zero     ; end; ORA-01841: (full) year must be between -4713 and +9999, and not be 0
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to return the received character value or 'nill'
@@ -183,7 +191,7 @@ as
 
     -- ---------------------------------------------------------------------------------------------
     -- Public (overloaded) functions that return 1 if both arguments are equal including when both
-    -- arguments are NULL. Return 0 is the arguments differ. Return -1 if an error occurred.
+    -- arguments are NULL. Return 0 if the arguments differ. Return -1 if an error occurred.
     -- They are also equal if they are both NULL.
     --
     -- Base for character data, with option case sensitive('c') or insensitive('i') (like Oracles
@@ -315,6 +323,7 @@ as
     -- When this is not possible NULL is returned, NO exception is raised (it is ignored)
     -- When a null value is passed also a NULL is returned (garbage-in, garbage-out)
     -- Also available as a SQL Operator TO_NUM_VAL which can be used in a SQL query (only!)
+    -- Possible upgrade: add optional second argument with a numeric format to be used
     function to_num_val
         (pi_value   in varchar2
         )
@@ -351,7 +360,7 @@ as
     end f_yes_no;
     -- overload for numeric boolean
     function f_yes_no
-                (pi_val  in pls_integer)
+        (pi_val  in pls_integer)
     return varchar2
     deterministic
     as
