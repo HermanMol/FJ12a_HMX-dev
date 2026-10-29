@@ -12,7 +12,7 @@ as
     - Annotations supported in this package are tables, views, materialized views, and indexes.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION:2026-10-28 12:52:10 +01:00
+.HMX_OBJECT_VERSION: 2026-10-29 12:20:19 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -102,6 +102,15 @@ as
         )
     return hmx_object_version_arr 
     pipelined;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure that returns the object version value ONLY (from the annotations)
+    function get_object_version_value
+        (pi_owner       in varchar2
+        ,pi_object_name in varchar2
+        ,pi_object_type in varchar2 := null
+        )
+    return varchar2;
 
 end hmx_annotations;
 /
