@@ -11,7 +11,7 @@ is
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-24 12:19:36 +02:00
+.HMX_OBJECT_VERSION: 2026-10-29 08:59:37 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -19,7 +19,7 @@ is
 
 -- -------------------------------------------------------------------------------------------------
 
-    k_anonymous_block constant varchar2(50) := lower('__anonymous_block'); -- default, see from oracle documentation
+    k_anonymous_block constant varchar2(50) := lower('__anonymous_block'); -- default, see from Oracle documentation
     k_pkg_init        constant varchar2(50) := upper('__pkg_init');        -- the Oracle defined name for the package initialization
 
     -- type to pass all info from the UTL_CALL_STACK functionality
@@ -52,16 +52,6 @@ is
     --     module and ignoring that logging module entry in the call stack.
     function get_called_from
         (i_skip_units in varchar2 := null
-        )
-    return varchar2;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function that returns the object name and line number where this was called from.
-    -- Parameters:
-    -- - pi_log_pkid = Required, primary key of the HMX_LOG record where to return the object and
-    --     line number.
-    function get_called_from_formatted
-        (pi_log_pkid in hmx_log_data.log_pkid%type
         )
     return varchar2;
 

@@ -11,7 +11,7 @@ is
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-24 12:19:22 +02:00
+.HMX_OBJECT_VERSION: 2026-10-29 09:00:48 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -144,59 +144,6 @@ is
     end get_called_from;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function that returns the object name and line number where this was called from.
-    -- Parameters:
-    -- - pi_log_pkid = Required, primary key of the HMX_LOG record where to return the object and
-    --     line number.
-    function get_called_from_formatted
-        (pi_log_pkid in hmx_log_data.log_pkid%type
-        )
-    return varchar2
-    as
-        l_retval          varchar2(32767);
-        l_log_org_owner   hmx_log_data.log_org_owner%type;
-        l_log_org_object  hmx_log_data.log_org_object%type;
-        l_log_org_type    hmx_log_data.log_org_type%type;
-        l_log_org_method  hmx_log_data.log_org_method%type;
-        l_log_org_line    hmx_log_data.log_org_line%type;
-        l_log_call_depth  hmx_log_data.log_call_depth%type;
-    begin
-
-        <<try_get_hmx_log_data>>
-        begin
-            select log_org_owner
-                ,log_org_object
-                ,log_org_type
-                ,log_org_method
-                ,log_org_line
-                ,log_call_depth
-            into l_log_org_owner
-                ,l_log_org_object
-                ,l_log_org_type
-                ,l_log_org_method
-                ,l_log_org_line
-                ,l_log_call_depth
-            from hmx_log_data
-            where log_pkid = pi_log_pkid;
-
-            l_retval := nvl(          l_log_org_owner      , '*' )
-                     || nullif('.' || l_log_org_object     , '.' )
-                     || nullif('[' || l_log_org_line || ']', '[]')
-                     || nullif('=' || l_log_org_method     , '=' )
-                     || nullif('@' || nvl(to_char(l_log_call_depth),'0'), '@0')
-                     || nullif('/' || nvl(l_log_org_type   ,'-'), '/-')
-                     ;
-        exception
-            when no_data_found
-            then
-                l_retval := '(Unknown log_pkid = ' || pi_log_pkid || ' )';
-        end try_get_hmx_log_data;
-
-        return l_retval;
-
-    end get_called_from_formatted;
-
-    -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the backtrace as a LF-separated string.
     -- Only usefull during exception handling.
     -- In the absence of an exception the returned value is "(No backtrace)".
@@ -227,7 +174,6 @@ is
     -- Only usefull during exception handling.
     -- In the absence of an exception the returned value is "(No backtrace)".
     -- Parameters: none.
-
     function get_error_stack
     return varchar2
     as
