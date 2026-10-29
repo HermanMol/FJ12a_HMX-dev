@@ -11,7 +11,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 ...
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-23 10:34:47 +02:00
+.HMX_OBJECT_VERSION: 2026-10-29 09:02:48 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -93,6 +93,13 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     function fk_operations  return varchar2 deterministic;
     function fk_user        return varchar2 deterministic;
     function fk_keyuser     return varchar2 deterministic;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the default name of a numeric log level
+    function log_level_name
+        (pi_log_level_num   in number)
+    return varchar2
+    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function get the log level active in this session
@@ -222,6 +229,17 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     -- ---------------------------------------------------------------------------------------------
     -- Procedure that logs connection values
     procedure log_connection;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the object name and line number where this was called from.
+    -- Parameters:
+    -- - pi_log_pkid = Required, primary key of the HMX_LOG record where to return the object and
+    --     line number.
+    function get_called_from_formatted
+        (pi_log_pkid in hmx_log_data.log_pkid%type
+        )
+    return varchar2;
+
 
 end hmx_log;
 /
