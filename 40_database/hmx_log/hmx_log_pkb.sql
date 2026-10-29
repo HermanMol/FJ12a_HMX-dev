@@ -10,7 +10,7 @@ as
     ...
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 09:03:12 +01:00
+.HMX_OBJECT_VERSION: 2026-10-29 17:35:51 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -78,6 +78,9 @@ as
     function fk_operations  return varchar2 deterministic is begin return k_operations; end;
     function fk_user        return varchar2 deterministic is begin return k_user      ; end;
     function fk_keyuser     return varchar2 deterministic is begin return k_keyuser   ; end;
+
+    -- Log running a script: object_type = k_script
+    function fk_script      return varchar2 deterministic is begin return k_script    ; end;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function returning the default name of a numeric log level
@@ -401,12 +404,12 @@ as
     begin
 
         bp_init_hmx_log_data_record(l_hmx_log_rec);
-    
+
         if sqlcode <> 0
         then
-        l_in_exception_handling := hmx_utl.k_yes;
+            l_in_exception_handling := hmx_utl.k_yes;
         end if;
-    
+
         -- prevent a nasty looping :-) when called from gdb_tools.hmx_log_ctx_api.log_context_values
         -- only needed during development of this perticular package
         -- *skip     if  not (   pi_type = fk_logging
@@ -415,9 +418,9 @@ as
         -- *skip     then
         -- *skip       gdb_tools.hmx_log_ctx_api.log_context_values(pi_text => 'LOG_MSG');
         -- *skip     end if;
-    
+
         l_log_opt := pi_log_opt;    -- TODO
-    
+
         l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => $$plsql_unit);
         l_hmx_log_rec.log_msg             := pi_log_msg;
         l_hmx_log_rec.log_type            := pi_log_type;
@@ -429,7 +432,7 @@ as
         l_hmx_log_rec.log_org_method      := l_called_from_details.object_method;
         l_hmx_log_rec.log_org_line        := l_called_from_details.object_line;
         l_hmx_log_rec.log_call_depth      := l_called_from_details.call_depth;
-        
+
         if l_in_exception_handling = hmx_utl.k_yes
         then
             l_hmx_log_rec.log_sqlcode := sqlcode;
@@ -443,7 +446,7 @@ as
                 l_log_opt := l_log_opt + k_log_call_stack;
             end if;
         end if;
-    
+
         if bitand(l_log_opt,k_log_error_backtrace) = k_log_error_backtrace
         then
             l_hmx_log_rec.log_error_backtrace := nvl(substr(dbms_utility.format_error_backtrace(),1,4000),'(none)');
@@ -452,18 +455,30 @@ as
         then
             l_hmx_log_rec.log_call_stack := nvl(substr(dbms_utility.format_call_stack(),1,4000),'(none)');
         end if;
-    
-        -- The object_type is not available in the UTL_CALL_STACK data ...
-        -- But we need it for SQL Developer SDEV_LINK_TYPE ...
+
+        if  pi_object_type = k_script
+        then
+            -- no need to get certain called from info
+            l_hmx_log_rec.log_msg             := 'Script: ' || pi_log_msg;
+            l_hmx_log_rec.log_org_owner       := null;
+            l_hmx_log_rec.log_org_object      := substr(regexp_substr(pi_log_msg,'([^\\/]*)$',1,1,'i',1),1,128);  -- for script filled with the only the file name
+            l_hmx_log_rec.log_org_method      := null;
+            l_hmx_log_rec.log_org_line        := 1;
+            l_hmx_log_rec.log_call_depth      := 1;
+            l_hmx_log_rec.log_org_type        := pi_object_type;
+        end if;
+
         if l_hmx_log_rec.log_org_type is null
         then
+            -- The object_type is not available in the UTL_CALL_STACK data ...
+            -- But we need it for SQL Developer SDEV_LINK_TYPE ...
             <<get_object_type>>
             begin
                 select object_type
                 into l_hmx_log_rec.log_org_type
                 from all_objects
                 where oracle_maintained = 'N'
-                and owner       = l_hmx_log_rec.log_org_owner 
+                and owner       = l_hmx_log_rec.log_org_owner
                 and object_name = l_hmx_log_rec.log_org_object
                 and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION')
                 order by object_type desc
@@ -476,7 +491,7 @@ as
         end if;
         -- insert the logging into the hmx_log_DATA table
         l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
-    
+
         if l_logging_msg is not null    -- TODO what is this for
         then
             l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
@@ -829,6 +844,23 @@ as
         return l_retval;
 
     end get_called_from_formatted;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Log the execution of a script. Using standard level, type, scope etc.
+    procedure log_run_script
+        (pi_log_script  in varchar2
+        ,pi_log_tags    in varchar2 := null
+        )
+    as
+    begin
+        log_msg (pi_log_msg     => pi_log_script
+                ,pi_log_level   => k_normal
+                ,pi_log_type    => k_trace
+                ,pi_log_scope   => k_developer
+                ,pi_log_tags    => pi_log_tags
+                ,pi_object_type => k_script
+                );
+    end log_run_script;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

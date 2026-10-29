@@ -17,14 +17,15 @@
       set heading off
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-27 17:02:50 +01:00
+.HMX_OBJECT_VERSION: 2026-10-28 14:03:04 +01:00
 .HMX_SQLCL_VERSION: 26.3.0.0 build: 26.3.0.260.1620
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 
-select '*I: Current session settings (' || to_char(sysdate,'yyyy-mm-dd hh24:mi:ss') || ')'
+select '*I: Current session settings  (' || to_char(systimestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM') || ')'
+    || chr(10) || '    - Local timestamp........: ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM')
     || chr(10) || '    - OS_USER................: ' || sys_context('USERENV', 'OS_USER')
     || chr(10) || '    - HOST...................: ' || sys_context('USERENV', 'HOST')
     || chr(10) || '    - DB_NAME................: ' || sys_context('USERENV', 'DB_NAME')

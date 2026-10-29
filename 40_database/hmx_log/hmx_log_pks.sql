@@ -11,7 +11,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 ...
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 09:02:48 +01:00
+.HMX_OBJECT_VERSION: 2026-10-29 17:01:30 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -59,6 +59,9 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     k_user        constant varchar2 (10) := 'USER';
     k_keyuser     constant varchar2 (10) := 'KEYUSER';
 
+    -- Log running a script: object_type = k_script
+    k_script      constant varchar2 (06) := 'SCRIPT';
+
     -- Public constant functions so they can be used in queries.
     -- Log message type, predefined constants
     -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
@@ -93,6 +96,9 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     function fk_operations  return varchar2 deterministic;
     function fk_user        return varchar2 deterministic;
     function fk_keyuser     return varchar2 deterministic;
+
+    -- Log running a script: object_type = k_script
+    function fk_script      return varchar2 deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function returning the default name of a numeric log level
@@ -240,6 +246,12 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         )
     return varchar2;
 
+    -- ---------------------------------------------------------------------------------------------
+    -- Log the execution of a script. Using standard level, type, scope etc.
+    procedure log_run_script
+        (pi_log_script  in varchar2
+        ,pi_log_tags    in varchar2 := null
+        );
 
 end hmx_log;
 /
