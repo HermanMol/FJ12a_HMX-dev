@@ -1,18 +1,23 @@
 prompt *I: ScriptBOF hmx_call_stack_tests_pkb.sql
 create or replace package body hmx_call_stack_tests 
 as
+/* <hmx-annotations>
 
-    k_body_version varchar2(20) := '2026-10-15 15:15:23';
+.HMX_OBJECT_USAGE: This package is meant for testing the HMX_CALL_STACK - ONLY!
 
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning all version information regarding this package
-    function get_version_info
-    return varchar2
-    deterministic
-    as
-    begin
-        return 'Package ' || $$plsql_unit || ' version' || ': Spec='  || k_spec_version || ', Body='  || k_body_version;
-    end get_version_info;
+.HMX_OBJECT_NOTES:
+    Package expected to be definer rights
+    Testing:
+    - hmx_call_stack.get_called_from
+    - hmx_call_stack.get_backtrace
+    - hmx_call_stack.get_error_stack
+
+.HMX_DEVELOPER_NOTES: See HMX General Developer Notes
+.HMX_OBJECT_VERSION: 2026-10-28 14:47:19 +01:00
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+** </hmx-annotations> */
 
     -- ---------------------------------------------------------------------------------------------
     -- Local procedure testing 
@@ -28,7 +33,7 @@ as
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         PRT('*i: ... blablabla ...');
-        raise_application_error(-20000,'My Exception');
+        raise_application_error(-20000,'My forced exception');
         prt('*I: End P_04');
     exception
         when others
@@ -225,9 +230,9 @@ as
             hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
-            prt('FORMAT_CALL_STACK'      || chr(10) || DBMS_UTILITY.FORMAT_CALL_STACK);
-            prt('FORMAT_ERROR_BACKTRACE' || chr(10) || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
-            prt('FORMAT_ERROR_STACK'     || chr(10) || DBMS_UTILITY.FORMAT_ERROR_STACK);
+            prt(DBMS_UTILITY.FORMAT_CALL_STACK);
+            prt('----- FORMAT_ERROR_BACKTRACE -----' || chr(10) || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
+            prt('----- FORMAT_ERROR_STACK -----'     || chr(10) || DBMS_UTILITY.FORMAT_ERROR_STACK);
             prt('*I: End ' || $$plsql_unit || '.P_MAIN');
             hmx_log.log_msg
                 (pi_log_msg   => 'Exception running P_MAIN'
