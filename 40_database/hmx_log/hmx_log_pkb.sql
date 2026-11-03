@@ -44,6 +44,8 @@ as
     s_cnt_msg_skipped   number(38,0) :=  0;
     s_max_log_rate      number(6,0)  := k_max_log_rate_default;
 
+--    procedure debug_prt(pi_text in varchar2 := null) as begin dbms_output.put_line(nullif('*D: ' || pi_text, '*D: ') ); end debug_prt;
+
     -- Public constants implemented as functions so they can be used in queries.
     -- Log message level, predefined constants
     -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which
@@ -405,7 +407,7 @@ as
 
         bp_init_hmx_log_data_record(l_hmx_log_rec);
 
-        if sqlcode <> 0
+        if nvl(sqlcode,0) <> 0  -- HM20261103
         then
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
@@ -433,9 +435,23 @@ as
         l_hmx_log_rec.log_org_line        := l_called_from_details.object_line;
         l_hmx_log_rec.log_call_depth      := l_called_from_details.call_depth;
 
+--        debug_prt
+--            ($$plsql_unit || '[' || $$plsql_line || '] : '
+--            || chr(10) || '    - log_msg        = ' || nvl(to_char(l_hmx_log_rec.log_msg       ),'nill')
+--            || chr(10) || '    - log_type       = ' || nvl(to_char(l_hmx_log_rec.log_type      ),'nill')
+--            || chr(10) || '    - log_level      = ' || nvl(to_char(l_hmx_log_rec.log_level     ),'nill')
+--            || chr(10) || '    - log_scope      = ' || nvl(to_char(l_hmx_log_rec.log_scope     ),'nill')
+--            || chr(10) || '    - log_tags       = ' || nvl(to_char(l_hmx_log_rec.log_tags      ),'nill')
+--            || chr(10) || '    - log_org_owner  = ' || nvl(to_char(l_hmx_log_rec.log_org_owner ),'nill')
+--            || chr(10) || '    - log_org_object = ' || nvl(to_char(l_hmx_log_rec.log_org_object),'nill')
+--            || chr(10) || '    - log_org_method = ' || nvl(to_char(l_hmx_log_rec.log_org_method),'nill')
+--            || chr(10) || '    - log_org_line   = ' || nvl(to_char(l_hmx_log_rec.log_org_line  ),'nill')
+--            || chr(10) || '    - log_call_depth = ' || nvl(to_char(l_hmx_log_rec.log_call_depth),'nill')
+--            );
+
         if l_in_exception_handling = hmx_utl.k_yes
         then
-            l_hmx_log_rec.log_sqlcode := sqlcode;
+            l_hmx_log_rec.log_sqlcode := nvl(sqlcode,0);    -- HM20261103
             l_hmx_log_rec.log_sqlerrm := substr(sqlerrm,1,512);
             if bitand(l_log_opt,k_log_error_backtrace) = 0
             then

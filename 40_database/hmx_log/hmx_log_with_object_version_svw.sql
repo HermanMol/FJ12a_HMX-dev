@@ -79,7 +79,7 @@ from hmx_log_data
 
 
 
-
+/*
 select log_pkid
     ,case when to_char(log_time,'yyyymm') = to_char(current_date,'yyyymm') then to_char(log_time,'dd hh24:mi:ss') 
         when to_char(log_time,'yyyy') = to_char(current_date,'yyyy') then to_char(log_time,'mm-dd hh24:mi:ss') 
@@ -119,3 +119,4 @@ select log_pkid
     ,log_app_user
 from hmx_log_data
 /
+*/

@@ -1,9 +1,8 @@
 prompt *I: ScriptBOF hmx_install_all.sql
 prompt ---------------------------------------------------------------------------------------------;
+@hmx_spoolstart hmx_install_all.sql
 
 @hmx_utl\prt_prc.sql
-
-@hmx_spoolstart hmx_install_all.sql
 
 @hmx_log\hmx_log_data_seq.sql
 
@@ -27,8 +26,6 @@ prompt -------------------------------------------------------------------------
 
 @hmx_operators\hmx_operators_opr.sql
 
-@hmx_annotations\hmx_annotations_install_all.sql
-
 @hmx_utl\hmx_utl_pkb.sql
 @hmx_session\hmx_session_pkb.sql
 @hmx_log\hmx_log_core_pkb.sql
@@ -36,9 +33,18 @@ prompt -------------------------------------------------------------------------
 @hmx_call_stack\hmx_call_stack_pkb.sql
 @hmx_annotations\hmx_annotations_pkb.sql
 
+@hmx_session\hmx_sys_context_userenv_svw.sql
 @hmx_annotations\hmx_all_annotations_svw.sql
 @hmx_annotations\hmx_all_object_versions_svw.sql
-@hmx_session\hmx_sys_context_userenv_svw.sql
+@hmx_log\hmx_log_with_object_version_svw.sql
+@hmx_log\hmx_log_all_nice_svw.sql
+
+-- Install the DDL logging ENABLED - here?
+@hmx_ddl_logging\hmx_ddl_log_data_tbl.sql
+@hmx_ddl_logging\hmx_ddl_logging_trg.sql
+@hmx_ddl_logging\hmx_ddl_log_data_version_svw.sql
+-- only ENABLE the DDL-trigger AFTER ALL DDL-logging related objects have been created!
+@hmx_ddl_logging\hmx_ddl_trigger_enable.sql
 
 @hmx_call_stack\hmx_test_log_module_prc.sql
 @hmx_call_stack\hmx_call_stack_tests_pks.sql
@@ -50,6 +56,11 @@ show errors
 
 show errors
 
-@hmx_spoolfinish
+begin
+    hmx_log.log_msg(pi_log_msg=>'All HMX-objects installed script using hmx_install_all.sql.',pi_log_tags=>'INSTALL');
+end;
+/
 
 prompt *I: ScriptEOF hmx_install_all.sql
+@hmx_spoolfinish
+prompt Done.
