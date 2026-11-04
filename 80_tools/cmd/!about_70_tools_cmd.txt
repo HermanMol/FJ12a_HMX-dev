@@ -1,1 +1,18 @@
 ~\10_wrk\80_tools\cmd\!about_70_tools_cmd.txt
+
+Helpful tools (I think):
+
+- new_project.bat
+  Generates a unique project code, copies a project folder structure from a 
+  template and performs some simple editing.
+
+- oci1.bat
+  Start SQLcl in a certain database and the user is the first argument.
+  It also avoids a Java thingie that I don't know how to solve otherwise.
+
+- get_hmxt_project_code.cmd
+  Subcommand used in new_project.bat
+
+- get_timestamp.cmd
+  Retrieves the system timestamp using PowerShell
+  Used in get_hmxt_project_code.cmd

@@ -604,3 +604,4 @@ end;
 prompt *I: Spoolfile = &&v_spoolfile.
 prompt *I: ScriptEOF hmx_utl_pkg_tests.sql
 @hmx_spoolfinish
+prompt Done.

@@ -1,5 +1,10 @@
-prompt *I: ScriptBOF string_stack_type_tests.sql
 @hmx_spoolstart string_stack_type_tests.sql
+prompt *I: ScriptBOF string_stack_type_tests.sql
+
+set heading off
+@hmx_session_info
+set heading on
+
 DECLARE
 	l_msg  string_stack_type := string_stack_type();	-- instantiate
 
@@ -198,5 +203,6 @@ BEGIN
 	prt(rpad('=',100,'='));
 END;
 /
-@hmx_spoolfinish
 prompt *I: ScriptEOF string_stack_type_tests.sql
+@hmx_spoolfinish
+prompt Done.

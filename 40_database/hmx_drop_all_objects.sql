@@ -47,6 +47,7 @@ drop package if exists hmx_utl;
 drop procedure if exists hmx_test_log_module;
 drop table if exists hmx_ddl_log_data cascade constraints purge;
 drop table if exists hmx_log_data cascade constraints purge;
+drop type if exists string_stack_type;
 drop sequence if exists hmx_log_data_seq;
 prompt *I: ScriptEOF hmx_drop_all_objects.sql
 @hmx_spoolfinish

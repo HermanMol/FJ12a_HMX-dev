@@ -1,4 +1,4 @@
-prompt *I: ScriptBOF hmx_operators_opr.sql
+prompt *I: ScriptBOF hmx_operators_ALL_install.sql
 /* <hmx-annotations>
 
 .HMX_OBJECT_USAGE: Script to create schema level operators
@@ -55,11 +55,10 @@ comment on operator to_num_val
 returns NULL, but NO exception is raised. If the input is NULL it also returns NULL
 too.'
 /
-prompt *I: ScriptEOF hmx_operators_opr.sql
-
 -- -- to_check:
 -- select *
 -- from all_operator_comments
 -- where owner = sys_context('userenv','current_schema')
 -- order by operator_name
 
+prompt *I: ScriptEOF hmx_operators_ALL_install.sql

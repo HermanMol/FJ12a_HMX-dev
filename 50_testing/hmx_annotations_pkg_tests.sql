@@ -1,5 +1,10 @@
-prompt *I: ScriptBOF hmx_annotations_tests.sql
-@hmx_spoolstart hmx_annotations_tests.sql
+@hmx_spoolstart hmx_annotations_pkg_tests.sql
+prompt *I: ScriptBOF hmx_annotations_pkg_tests.sql
+
+set heading off
+@hmx_session_info
+set heading on
+
 declare
 /* <hmx-annotations>
 
@@ -164,5 +169,6 @@ begin
 
 end;
 /
+prompt *I: ScriptEOF hmx_annotations_pkg_tests.sql
 @hmx_spoolfinish
-prompt *I: ScriptEOF hmx_annotations_tests.sql
+prompt Done.
