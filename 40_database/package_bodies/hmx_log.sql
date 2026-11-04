@@ -3,19 +3,18 @@ create or replace package body hmx_log
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package/script...
+.HMX_OBJECT_USAGE: This package holds the processing logging functionality.
 
 .HMX_OBJECT_NOTES:
-    Package must be invoker rights (AUTHID CURRENT_USER)
-    ...
+Package must be invoker rights (AUTHID CURRENT_USER)
+See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 17:35:51 +01:00
+.HMX_OBJECT_VERSION: 2026-11-04 17:57:21 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
-
 
     -- Private constants related to this package body, (s_ = SELF)
     k_anonymous  constant varchar2(50) := lower('__anonymous_block');   -- default from Oracle documentation
@@ -359,29 +358,10 @@ as
     end set_process_id;
 
     -- ---------------------------------------------------------------------------------------------
-    -- public
-    -- Log the message
-    -- All values SUBSTR-ed - better safe than sorry
-    -- - pi_type  = The type of message. Unrestricted but these are the predefined values:
-    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
-    -- - pi_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
-    --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
-    --              For types TRACE and DEBUG a negative value indicates the execution level at
-    --              which the message was issued. Unrestricted.
-    -- - pi_scope = The scope of the message, Unrestricted but these are the predefined values:
-    --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
-    -- - pi_tags  = Free format for tags for logical grouping of messages, e.g. a test case
-    --              reference or a REST message UID.
-    -- - pi_log_opt: Logging options
-    --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
-    --    <>0     | *1    |    n/a     |    n/a          | log message | yes        | yes
-    --    =0      | n/a   |    false   |    false        | log message | no         | no
-    --    =0      | n/a   |    false   |    true         | log message | no         | yes
-    --    =0      | n/a   |    true    |    false        | log message | yes        | no
-    --    =0      | n/a   |    true    |    true         | log message | yes        | yes
-    --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
-    --       this should not be used when called from another package. TYPE will be set to LOGGING
-    procedure log_msg
+    -- Log the message and return the created primary key.
+    -- Mainly used for testing, being able to check the added log record.
+    -- For explanation see the comments for procedure LOG_MSG.
+    function f_log_msg
         (pi_log_msg     in varchar2
         ,pi_log_level   in number   := fk_no_level
         ,pi_log_type    in varchar2 := fk_info
@@ -389,7 +369,9 @@ as
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
+        ,i_skip_units   in varchar2 := null
         )
+    return number
     is
         l_in_exception_handling varchar2(1) := hmx_utl.k_no;
         l_called_from_details   hmx_call_stack.t_called_from_info_rec;
@@ -407,7 +389,7 @@ as
 
         bp_init_hmx_log_data_record(l_hmx_log_rec);
 
-        if nvl(sqlcode,0) <> 0  -- HM20261103
+        if nvl(sqlcode,0) <> 0
         then
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
@@ -423,7 +405,7 @@ as
 
         l_log_opt := pi_log_opt;    -- TODO
 
-        l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => $$plsql_unit);
+        l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => nullif(i_skip_units || ',',',') || $$plsql_unit);
         l_hmx_log_rec.log_msg             := pi_log_msg;
         l_hmx_log_rec.log_type            := pi_log_type;
         l_hmx_log_rec.log_level           := pi_log_level;
@@ -515,6 +497,61 @@ as
             l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
         end if;
 
+        return l_log_id;
+    end f_log_msg;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure used to log a message, passing all actual processing to the f_log_msg function.
+    -- All character values will be SUBSTR-ed to their max allowed lenght.
+    -- - pi_log_type  = The type of message. Unrestricted but these are the predefined values:
+    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
+    -- - pi_log_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
+    --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
+    --              For types TRACE and DEBUG a negative value indicates the execution level at
+    --              which the message was issued. Unrestricted.
+    -- - pi_log_scope = The scope of the message, Unrestricted but these are the predefined values:
+    --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
+    -- - pi_log_tags  = Free format for tags for logical grouping of messages, e.g. a test case
+    --              reference or a REST message UID.
+    -- - pi_log_opt: Logging options
+    --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
+    --    <>0     | *1    |    n/a     |    n/a          | log message | yes        | yes
+    --    =0      | n/a   |    false   |    false        | log message | no         | no
+    --    =0      | n/a   |    false   |    true         | log message | no         | yes
+    --    =0      | n/a   |    true    |    false        | log message | yes        | no
+    --    =0      | n/a   |    true    |    true         | log message | yes        | yes
+    --  - pi_object_type = (optional) the object where called from. Might be needed to register
+    --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
+    --              will work. If no object type can be registered with the log message, then
+    --              default "PACKAGE BODY" is probably the best guess.
+    -- - i_skip_units = the comma-separated list of unit names that should be skipped when trying
+    --              to find the calling unit in the call stack. This package HMX_LOG is skipped
+    --              by default.
+    --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
+    --       this should not be used when called from another package. TYPE will be set to LOGGING
+    procedure log_msg
+        (pi_log_msg     in varchar2
+        ,pi_log_level   in number   := fk_no_level
+        ,pi_log_type    in varchar2 := fk_info
+        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_tags    in varchar2 := null
+        ,pi_log_opt     in number   := 0
+        ,pi_object_type in varchar2 := null
+        ,i_skip_units   in varchar2 := null
+        )
+    as
+        l_log_id number;
+    begin
+        l_log_id := f_log_msg
+            (pi_log_msg     => pi_log_msg
+            ,pi_log_level   => pi_log_level
+            ,pi_log_type    => pi_log_type
+            ,pi_log_scope   => pi_log_scope
+            ,pi_log_tags    => pi_log_tags
+            ,pi_log_opt     => pi_log_opt
+            ,pi_object_type => pi_object_type
+            ,i_skip_units   => i_skip_units
+            );
     end log_msg;
 
     -- ---------------------------------------------------------------------------------------------
@@ -877,6 +914,40 @@ as
                 ,pi_object_type => k_script
                 );
     end log_run_script;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Get the full row from HMX_LOG_DATA based on the passed pkid
+    -- If the requested log_pkid is null, an error message is returned, starting with "#ERROR# %".
+    -- If the row is not found, the pkid is set to NULL and an error message is returned, starting with "#ERROR# %".
+    -- If the any other error occurred, the pkid is set to SQLCODE and an error message is returned, starting with "#ERROR# %" and containing the SQLERRM.
+    -- This procedure is probably mainly used for testing.
+    procedure get_log_row
+        (pio_hmx_log_row in out hmx_log_data%rowtype
+        )
+    as
+    begin
+        if pio_hmx_log_row.log_pkid is null
+        then
+            pio_hmx_log_row.LOG_MSG := '#ERROR# MISSING LOG_PKID IN '|| $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+        else
+            <<get_log_record>>
+            begin
+                select *
+                into pio_hmx_log_row
+                from hmx_log_data
+                where log_pkid = pio_hmx_log_row.log_pkid;
+            exception
+                when no_data_found
+                then
+                    pio_hmx_log_row.log_msg  := '#ERROR# LOG_PKID ' || to_char(pio_hmx_log_row.log_pkid ) || ' NOT FOUND IN ' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+                    pio_hmx_log_row.log_pkid := null;
+                when others
+                then
+                    pio_hmx_log_row.log_msg  := '#ERROR# ' || sqlerrm || ' IN ' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+                    pio_hmx_log_row.log_pkid := sqlcode;
+            end get_log_record;
+        end if;
+    end get_log_row;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

@@ -4,14 +4,14 @@ AUTHID CURRENT_USER
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package/script...
+.HMX_OBJECT_USAGE: This package holds the processing logging functionality.
 
 .HMX_OBJECT_NOTES:
 Package must be invoker rights (AUTHID CURRENT_USER)
-...
+See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 17:01:30 +01:00
+.HMX_OBJECT_VERSION: 2026-11-04 17:57:21 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -145,17 +145,32 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         );
 
     -- ---------------------------------------------------------------------------------------------
-    -- Log the message
-    -- All values SUBSTR-ed - better safe than sorry
-    -- - pi_level = The severity level of the message: (default) 0=not_specified, 5-cache, 10=info,
+    -- Log the message and return the created primary key.
+    -- Mainly used for testing, being able to check the added log record.
+    -- For explanation see the comments for procedure LOG_MSG.
+    function f_log_msg
+        (pi_log_msg     in varchar2
+        ,pi_log_level   in number   := fk_no_level
+        ,pi_log_type    in varchar2 := fk_info
+        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_tags    in varchar2 := null
+        ,pi_log_opt     in number   := 0
+        ,pi_object_type in varchar2 := null
+        ,i_skip_units   in varchar2 := null
+        )
+    return number;
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure used to log a message, passing all actual processing to the f_log_msg function.
+    -- All character values will be SUBSTR-ed to their max allowed lenght.
+    -- - pi_log_type  = The type of message. Unrestricted but these are the predefined values:
+    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
+    -- - pi_log_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
     --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
     --              For types TRACE and DEBUG a negative value indicates the execution level at
     --              which the message was issued. Unrestricted.
-    -- - pi_type  = The type of message. Unrestricted but these are the predefined values:
-    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
-    -- - pi_scope = The scope of the message, Unrestricted but these are the predefined values:
+    -- - pi_log_scope = The scope of the message, Unrestricted but these are the predefined values:
     --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
-    -- - pi_tags  = Free format for tags for logical grouping of messages, e.g. a test case
+    -- - pi_log_tags  = Free format for tags for logical grouping of messages, e.g. a test case
     --              reference or a REST message UID.
     -- - pi_log_opt: Logging options
     --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
@@ -164,8 +179,15 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     --    =0      | n/a   |    false   |    true         | log message | no         | yes
     --    =0      | n/a   |    true    |    false        | log message | yes        | no
     --    =0      | n/a   |    true    |    true         | log message | yes        | yes
+    --  - pi_object_type = (optional) the object where called from. Might be needed to register
+    --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
+    --              will work. If no object type can be registered with the log message, then
+    --              default "PACKAGE BODY" is probably the best guess.
+    -- - i_skip_units = the comma-separated list of unit names that should be skipped when trying
+    --              to find the calling unit in the call stack. This package HMX_LOG is skipped
+    --              by default.
     --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
-    --       this should not be used when called from another package.
+    --       this should not be used when called from another package. TYPE will be set to LOGGING
     procedure log_msg
         (pi_log_msg     in varchar2
         ,pi_log_level   in number   := fk_no_level
@@ -174,6 +196,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
+        ,i_skip_units   in varchar2 := null
         );
 
     -- ---------------------------------------------------------------------------------------------
@@ -251,6 +274,16 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     procedure log_run_script
         (pi_log_script  in varchar2
         ,pi_log_tags    in varchar2 := null
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Get the full row from HMX_LOG_DATA based on the passed pkid
+    -- If the requested log_pkid is null, an error message is returned, starting with "#ERROR# %".
+    -- If the row is not found, the pkid is set to NULL and an error message is returned, starting with "#ERROR# %".
+    -- If the any other error occurred, the pkid is set to SQLCODE and an error message is returned, starting with "#ERROR# %" and containing the SQLERRM.
+    -- This procedure is probably mainly used for testing.
+    procedure get_log_row
+        (pio_hmx_log_row in out hmx_log_data%rowtype
         );
 
 end hmx_log;
