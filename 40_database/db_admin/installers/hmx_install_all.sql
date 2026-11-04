@@ -1,0 +1,64 @@
+prompt *I: ScriptBOF hmx_install_all.sql
+prompt ---------------------------------------------------------------------------------------------;
+@hmx_spoolstart hmx_install_all.sql
+
+@@..\..\procedures\prt.sql
+
+@@..\..\type_specs\t_string_varray50.sql
+@@..\..\type_specs\string_stack_type.sql
+@@..\..\type_bodies\string_stack_type.sql
+
+@@..\..\sequences\hmx_log_data_seq.sql
+
+@@..\..\tables\hmx_ddl_log_data.sql
+@@..\..\tables\hmx_log_data.sql
+
+@@..\..\package_specs\hmx_types.sql
+@@..\..\package_specs\hmx_utl.sql
+@@..\..\package_specs\hmx_session.sql
+@@..\..\package_specs\hmx_call_stack.sql
+@@..\..\package_specs\hmx_log_core.sql
+@@..\..\package_specs\hmx_log.sql
+@@..\..\package_specs\hmx_annotations.sql
+
+@@..\..\operators\hmx_operators_ALL_install.sql
+
+@@..\..\package_bodies\hmx_utl.sql
+@@..\..\package_bodies\hmx_session.sql
+@@..\..\package_bodies\hmx_call_stack.sql
+@@..\..\package_bodies\hmx_log_core.sql
+@@..\..\package_bodies\hmx_log.sql
+@@..\..\package_bodies\hmx_annotations.sql
+
+@@..\..\triggers\hmx_ddl_logging.sql
+
+@@..\..\views\hmx_ddl_log_data_version.sql
+@@..\..\views\hmx_sys_context_userenv.sql
+@@..\..\views\hmx_all_annotations.sql
+@@..\..\views\hmx_all_object_versions.sql
+@@..\..\views\hmx_log_with_object_version.sql
+@@..\..\views\hmx_log_all_nice.sql
+
+@@..\..\procedures\hmx_test_log_module.sql
+@@..\..\package_specs\hmx_call_stack_tests.sql
+@@..\..\package_bodies\hmx_call_stack_tests.sql
+
+-- only ENABLE the DDL-trigger AFTER ALL DDL-logging related objects have been created!
+@@..\..\triggers\hmx_ddl_trigger_enable.sql
+
+@@..\..\object_grants\hmx_ddl_log_data.sql
+
+@hmx_report_invalid_all
+
+@hmx_recompile_invalid_all
+
+@hmx_report_invalid_all
+
+begin
+    hmx_log.log_msg(pi_log_msg=>'All HMX-objects installed script using hmx_install_all.sql.',pi_log_tags=>'INSTALL');
+end;
+/
+
+prompt *I: ScriptEOF hmx_install_all.sql
+@hmx_spoolfinish
+prompt Done.

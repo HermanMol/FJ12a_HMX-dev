@@ -6,3 +6,6 @@
 *.tmp
 # default spoolfile extentions for Oracle SQL/Plus, SQLcl
 *.lst
+
+# hmx ignore all folders starting with notgit
+notgit_*/
