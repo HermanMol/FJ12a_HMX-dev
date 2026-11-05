@@ -202,7 +202,7 @@ declare
         elsif lower(pi_compare_op) = 'like'
         then
             lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
-            l_check := case when pi_result like pi_expected then k_pass else k_fail end;
+            l_check := case when pi_result like pi_expected escape '^' then k_pass else k_fail end;
 
         else
             lprt('*D: ERROR, unanticipated compare operator: "' || pi_compare_op || '"');
@@ -216,6 +216,7 @@ declare
             || ' - expected='  || prtval(pi_expected)
             || '; result='     || prtval(pi_result)
             || '; compare_op=' || prtval(pi_compare_op)
+            || case when pi_compare_op = 'like' then (' escape=''^''') end
             );
     exception
         when others
@@ -290,7 +291,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_normal
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -325,7 +326,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_normal
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -351,7 +352,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_normal
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -390,7 +391,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_normal
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -412,7 +413,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_attention
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -428,7 +429,7 @@ declare
                                     ,pi_log_level   => hmx_log.k_warning
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -442,6 +443,170 @@ declare
         lprt('*A: New minimum logging level for next tests applied in the logging: ' || hmx_log.k_no_level || ' = ' || hmx_log.log_level_name(pi_log_level_num => hmx_log.k_no_level));
 
     end test_set_minimum_log_level;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_set_tags
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+    begin
+        l_test := t_test_desc('04.01','Set+Get the tags');
+        l_expected_char := 'TAGS_' || l_test.id;
+        hmx_log.set_tags(pi_tags => l_expected_char);
+        l_result_char := hmx_log.get_tags;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('04.02','Set+Logged the tags');
+        l_expected_char := 'TAGS_' || l_test.id;
+        hmx_log.set_tags(pi_tags => l_expected_char);
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := l_hmx_log_row.log_tags;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char||'%', l_result_char, 'like');
+
+        -- set default for next tests
+        hmx_log.set_tags(pi_tags => null);
+        lprt('*A: New tags for next tests applied in the logging: ' || hmx_utl.nvlc(hmx_log.get_tags));
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('04.03','Set+Get the tags');
+        l_expected_char := 'TAGS_' || l_test.id;
+        hmx_log.set_tags(pi_tags => 'FirstTag');
+        hmx_log.add_tags(pi_tags => l_expected_char);
+        l_result_char := hmx_log.get_tags;
+        check_pass_fail ($$plsql_line, l_test, 'FirstTag;' || l_expected_char, l_result_char);
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('04.05','Add+Get the tags');
+        l_expected_char := 'TAGS_' || l_test.id;
+        hmx_log.set_tags(pi_tags => 'SecondTag');
+        hmx_log.add_tags(pi_tags => l_expected_char);
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := l_hmx_log_row.log_tags;
+        check_pass_fail ($$plsql_line, l_test, 'SecondTag;' || l_expected_char||'%', l_result_char, 'like');
+
+        -- set default for next tests
+        hmx_log.set_tags(pi_tags => null);
+        lprt('*A: New tags for next tests applied in the logging: ' || hmx_utl.nvlc(hmx_log.get_tags));
+
+    end test_set_tags;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_log_connection
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+    begin
+        l_test := t_test_desc('05.01','Log connection');
+        l_expected_char := 'USERENV:%NLS^_SESSION^_PARAMETERS:%CGI_ENV:%APEX-variables:%';
+        hmx_log.log_connection;
+        -- get the expected record that cas created no longer than 2 seconds ago
+        select max(log_pkid)
+        into l_hmx_log_row.log_pkid
+        from hmx_log_data
+        where log_msg like l_expected_char escape '^'
+        and log_time + TO_DSINTERVAL('00 00:00:02') > current_timestamp;
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := l_hmx_log_row.log_msg;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, 'like');
+
+    end test_log_connection;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_cache_message
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+    begin
+        l_test := t_test_desc('06.01','Cache 3 messages');
+        l_expected_char := 'First message.'
+            || hmx_utl.k_lf || 'Second message.'
+            || hmx_utl.k_lf || 'Third message.';
+        hmx_log.cache_msg('First message.');
+        hmx_log.cache_msg('Second message.');
+        hmx_log.cache_msg('Third message.');
+        l_result_char := hmx_log.get_cached_msg (pi_flush => hmx_utl.k_no, pi_max_length => 500);
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=');
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('06.02','Clear cached messages');
+        l_expected_char := 'No~mEssagEs~cachEd.' || l_test.id;
+        hmx_log.clear_cached_msg;
+        l_result_char := hmx_log.get_cached_msg (pi_flush => hmx_utl.k_no, pi_max_length => 500);
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, nvl(l_result_char,l_expected_char), '=');
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('06.03','Cache messages and flush after get_cached_msg');
+        l_expected_char := 'No~mEssagEs~cachEd.' || l_test.id;
+        hmx_log.cache_msg('Message one.');
+        hmx_log.cache_msg('Message two.');
+        hmx_log.cache_msg('Message three.');
+        l_result_char := hmx_log.get_cached_msg (pi_flush => hmx_utl.k_yes, pi_max_length => 500);
+        l_result_char := hmx_log.get_cached_msg;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, nvl(l_result_char,l_expected_char), '=');
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('06.04','no title yet: see further...');
+        l_expected_char := 'This message is logged and cached. Test ' || l_test.id;
+        hmx_log.clear_cached_msg;
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_expected_char
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                                    ,pi_log_opt     => hmx_log.k_add_cached_msg
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_test.title := 'Cache a logged message using the log option #4' || ' (from table)';
+        l_result_char := l_hmx_log_row.log_msg;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=');
+        -- check if logged was also cached
+        l_test.title := 'Cache a logged message using the log option #4' || ' (from cache)';
+        l_result_char := hmx_log.get_cached_msg (pi_flush => hmx_utl.k_yes, pi_max_length => 500);
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=');
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('06.05','Message is cached despite too low log level.');
+        hmx_log.clear_cached_msg;
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_attention);
+        l_result_num := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                                    ,pi_log_opt     => hmx_log.k_add_cached_msg
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+
+        l_expected_char := 'Test ' || l_test.id || ': Returned from calling f_log_msg = ' || l_result_num || '.';
+        l_result_char   := 'Test ' || l_test.id || ': Returned from calling f_log_msg = ' || hmx_log.k_skipped_too_low_log_level || '.';
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=');
+
+        l_expected_char := l_test.id || ' - ' || l_test.title;
+        l_result_char   := hmx_log.get_cached_msg (pi_flush => hmx_utl.k_yes, pi_max_length => 500);
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=');
+
+        -- set default for next tests
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_no_level);
+        lprt('*A: New minimum logging level for next tests applied in the logging: '
+            || hmx_log.k_no_level || ' = ' || hmx_log.log_level_name(pi_log_level_num => hmx_log.k_no_level));
+
+    end test_cache_message;
 
     -- ---------------------------------------------------------------------------------------------
 
@@ -466,9 +631,12 @@ begin
 
     dbms_application_info.set_client_info (client_info => 'Started hmx_log_tests_01.sql');
 
-    test_set_process_id;
-    test_set_app_user;
-    test_set_minimum_log_level;
+    test_set_process_id;        -- #01
+    test_set_app_user;          -- #02
+    test_set_minimum_log_level; -- #03
+    test_set_tags;              -- #04
+    test_log_connection;        -- #05
+    test_cache_message;         -- #06
 
     -- ---------------------------------------------------------------------------------------------
     lprt;

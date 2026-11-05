@@ -11,7 +11,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-05 10:50:56 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 18:16:46 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -130,8 +130,14 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     return varchar2;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Set the logging tags
+    -- Set the whole new logging tags
     procedure set_tags
+        (pi_tags  in varchar2
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Add tags to possibly existing logging tags, separated by a semicolon
+    procedure add_tags
         (pi_tags  in varchar2
         );
 
@@ -291,6 +297,17 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     procedure get_log_row
         (pio_hmx_log_row in out hmx_log_data%rowtype
         );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the timestamp that the last record was written to the 
+    -- HMX_LOG_DATA table.
+    function get_last_logtime
+    return timestamp with time zone;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the last HMX_LOG_DATA.LOG_PKID issued in this session
+    function get_last_log_pkid
+    return number;
 
 end hmx_log;
 /

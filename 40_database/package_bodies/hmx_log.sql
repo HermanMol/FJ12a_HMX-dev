@@ -10,7 +10,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-05 10:50:15 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 18:16:36 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -40,8 +40,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- Private variables: keep track of the log rate per second, no more than ...
     s_last_logtime      timestamp(9) with time zone;
     s_cnt_msg_written   number(38,0) :=  0;
-    s_cnt_msg_skipped   number(38,0) :=  0;
     s_max_log_rate      number(6,0)  := k_max_log_rate_default;
+
+    s_last_log_pkid_written number(38,0) :=  0;
 
 --    procedure debug_prt(pi_text in varchar2 := null) as begin dbms_output.put_line(nullif('*D: ' || pi_text, '*D: ') ); end debug_prt;
 
@@ -107,15 +108,17 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     end log_level_name;
 
     -- ---------------------------------------------------------------------------------------------
-    -- TODO
-    procedure set_last_logtime
+    -- Internal procedure to set the last time a record was logged. Used to control the logging
+    -- rate, keeping is below s_max_log_rate.
+    procedure bp_set_last_logtime
     as
     begin
-        s_last_logtime := systimestamp at time zone 'UTC';
-    end set_last_logtime;
+        s_last_logtime := current_timestamp;
+    end bp_set_last_logtime;
 
     -- ---------------------------------------------------------------------------------------------
-    -- TODO
+    -- Public function that returns the timestamp that the last record was written to the 
+    -- HMX_LOG_DATA table.
     function get_last_logtime
     return timestamp with time zone
     as
@@ -161,12 +164,12 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         )
     return number
     as
-        l_log_id  number;
     begin
         -- insert the logging into the hmx_log_DATA table
-        l_log_id := hmx_log_core.insert_hmx_log_data(pi_hmx_log_rec);
-        set_last_logtime; -- to control the maximum logging per second
-        return l_log_id;
+        s_last_log_pkid_written := hmx_log_core.insert_hmx_log_data(pi_hmx_log_rec);
+        s_cnt_msg_written := coalesce(s_cnt_msg_written,0) + 1;
+        bp_set_last_logtime; -- to control the maximum logging per second
+        return s_last_log_pkid_written;
     end bf_insert_hmx_log_data;
 
     -- ---------------------------------------------------------------------------------------------
@@ -199,7 +202,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     is
     begin
         bp_generate_process_id();
-        set_last_logtime;
+        bp_set_last_logtime;
         set_app_user;
         s_minimum_log_level := k_normal;
         s_max_log_rate      := k_max_log_rate_default;
@@ -245,7 +248,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     end get_tags;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Set the logging tags
+    -- Set the whole new logging tags
     procedure set_tags
     (pi_tags      in varchar2
     )
@@ -253,6 +256,16 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     begin
         s_tags := pi_tags;
     end set_tags;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Add tags to possibly existing logging tags, separated by a semicolon
+    procedure add_tags
+    (pi_tags      in varchar2
+    )
+    as
+    begin
+        s_tags := nullif(s_tags || ';', ';') || pi_tags;
+    end add_tags;
 
     -- ---------------------------------------------------------------------------------------------
     -- Get the app_user
@@ -322,8 +335,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         else
             s_max_log_rate := k_max_log_rate_default;
         end if;
-        -- reset settings
-        set_last_logtime;
+        -- reset counter
         s_cnt_msg_written := 0;
 
         return l_old_rate;
@@ -360,6 +372,28 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     end set_process_id;
 
     -- ---------------------------------------------------------------------------------------------
+    -- Internal function checking the amount of logging requests per second.
+    -- It must be less than the s_max_log_rate to avoid execessive logging e.g. in a tight loop.
+    function bf_logging_rate_ok
+    return boolean
+    as
+        l_retval    boolean := false;
+    begin
+        if current_timestamp > s_last_logtime + TO_DSINTERVAL('00 00:00:01')    -- one second
+        then
+            l_retval := true;           -- OK to log
+            s_cnt_msg_written := 0;     -- reset counter
+        elsif s_cnt_msg_written <= s_max_log_rate
+        then
+            l_retval := true;   -- OK to log
+        else
+            -- Refuse: too many logging requests in 1 second
+            l_retval := false;
+        end if;
+        return l_retval;
+    end bf_logging_rate_ok;
+
+    -- ---------------------------------------------------------------------------------------------
     -- Log the message and return the created primary key.
     -- Mainly used for testing, being able to check the added log record.
     -- For explanation see the comments for procedure LOG_MSG.
@@ -379,21 +413,29 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         l_called_from_details   hmx_call_stack.t_called_from_info_rec;
         l_hmx_log_rec           hmx_log_data%rowtype;
         l_log_id                number;
--- TODO max rate?        l_now                   timestamp(9) with time zone;
--- TODO max rate?        l_since                 number(11,2);
 -- TODO what for?        l_logging_msg           hmx_log_data.log_msg%type := null;
         l_log_opt               pls_integer;  -- initially pi_log_opt but might be changed.
 
     begin
+
+        l_log_opt := pi_log_opt;
+
+        -- If cache message is requested, no matter what the situation always cache the message in
+        -- the internal string stack of max 50 varchar2(4000) entries.
+        if bitand(l_log_opt,k_add_cached_msg) = k_add_cached_msg
+        then
+            cache_msg(hmx_utl.f_max_chars(pi_log_msg,4000) );
+        end if;
 
         if pi_log_level < s_minimum_log_level
         then
             return k_skipped_too_low_log_level; -- message not logged, level < current minimum log level
         end if;
 
-    /* TODO max_log_rate 2026-11-05 10:44:30
-        k_skipped_too_many_logged    constant number := 0.2 -- logging skipped, number of logged messages > maximum log rate
-    */
+        if not bf_logging_rate_ok 
+        then
+            return k_skipped_too_many_logged; -- logging skipped, number of logged messages > maximum log rate / second
+        end if;
 
         bp_init_hmx_log_data_record(l_hmx_log_rec);
 
@@ -402,14 +444,12 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
 
-        l_log_opt := pi_log_opt;
-
         l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => nullif(i_skip_units || ',',',') || $$plsql_unit);
-        l_hmx_log_rec.log_msg             := pi_log_msg;
-        l_hmx_log_rec.log_type            := pi_log_type;
+        l_hmx_log_rec.log_msg             := hmx_utl.f_max_chars(pi_log_msg,4000);
+        l_hmx_log_rec.log_type            := hmx_utl.f_max_chars(pi_log_type,8,null,null);
         l_hmx_log_rec.log_level           := pi_log_level;
-        l_hmx_log_rec.log_scope           := pi_log_scope;
-        l_hmx_log_rec.log_tags            := pi_log_tags;
+        l_hmx_log_rec.log_scope           := hmx_utl.f_max_chars(pi_log_scope,10,null,null);
+        l_hmx_log_rec.log_tags            := trim(both ';' from hmx_utl.f_max_chars(s_tags, 200, ';'||pi_log_tags) );
         l_hmx_log_rec.log_org_owner       := l_called_from_details.object_owner;
         l_hmx_log_rec.log_org_object      := l_called_from_details.object_name;
         l_hmx_log_rec.log_org_method      := l_called_from_details.object_method;
@@ -432,7 +472,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
         if l_in_exception_handling = hmx_utl.k_yes
         then
-            l_hmx_log_rec.log_sqlcode := nvl(sqlcode,0);    -- HM20261103
+            l_hmx_log_rec.log_sqlcode := nvl(sqlcode,0);
             l_hmx_log_rec.log_sqlerrm := substr(sqlerrm,1,512);
             if bitand(l_log_opt,k_log_error_backtrace) = 0
             then
@@ -477,8 +517,18 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
                 where oracle_maintained = 'N'
                 and owner       = l_hmx_log_rec.log_org_owner
                 and object_name = l_hmx_log_rec.log_org_object
-                and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION')
-                order by object_type desc
+                and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION', 'TYPE', 'TYPE BODY')
+                order by case object_type 
+                            when 'PACKAGE BODY' then 1 -- default, most likely order
+                            when 'PROCEDURE'    then 2
+                            when 'FUNCTION'     then 3
+                            when 'TRIGGER'      then 4
+                            when 'TYPE BODY'    then 5
+                            when 'PACKAGE'      then 6
+                            when 'TYPE'         then 7
+                            else 9
+                        end asc
+                    ,object_type
                 fetch first 1 rows only;
             exception
                 when no_data_found
@@ -774,7 +824,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             -- APEX substitution variables
             begin
                 l_text := l_text
-                    || k_lf || 'APEX-valiables:'
+                    || k_lf || 'APEX-variables:'
                     || lf_get_apex_values('APEX$ROW_NUM')
                     || lf_get_apex_values('APEX$ROW_SELECTOR')
                     || lf_get_apex_values('APEX$ROW_STATUS')
@@ -831,7 +881,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
                     l_text := l_text || k_lf || '*E: Error while retrieving APEX info: ' || sqlerrm();
             end;
         else
-            l_text := l_text || k_lf || 'APEX-valiables: No APEX data available.';
+            l_text := l_text || k_lf || 'APEX-variables: No APEX data available.';
         end if;
 
         log_msg
@@ -947,6 +997,15 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             end get_log_record;
         end if;
     end get_log_row;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the last log table HMX_LOG_DATA.LOG_PKID issued in this session
+    function get_last_log_pkid
+    return number
+    as
+    begin
+        return s_last_log_pkid_written;
+    end get_last_log_pkid;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

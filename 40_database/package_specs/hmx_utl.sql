@@ -12,7 +12,7 @@ as
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
 
-.HMX_OBJECT_VERSION: 2026-10-28 12:23:40 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 18:17:49 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -315,6 +315,29 @@ as
     -- Because double quotes have a special function in Oracle SQL.
     function f_q2q
         (pi_text in varchar2)
+    return varchar2
+    deterministic;
+
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string of a max size.
+    -- Parameters:
+    -- - pi_base_chars = the base characters
+    -- - pi_max        = maximum number of characters returned optionally after a not-NULL value of
+    --                   pi_add_chars was concattenated. Default max = 32767
+    --                   If pi_max < 0 then, the substring is taken starting at the end of the 
+    --                   concattenation and the ellipsis is put at the begin.
+    -- - pi_add_chars  = optional characters to be concattenated to pi_base_chars. NO space is 
+    --                   inserted when concattenation is done. Also NO trim of white spaces.
+    --                   Consider using the TRIMWS function.
+    -- - pi_ellipsis   = optional characters places at the end of the returned string if the total
+    --                   length would overflow (exceed the pi_max).
+    --                   pi_ellipsis is limited to max 10 characters.
+    function f_max_chars
+        (pi_base_chars  in varchar2
+        ,pi_max         in number   := 32767
+        ,pi_add_chars   in varchar2 := null
+        ,pi_ellipsis    in varchar2 := hmx_utl.k_ellipsis
+        )
     return varchar2
     deterministic;
 

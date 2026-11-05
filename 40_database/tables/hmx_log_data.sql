@@ -3,7 +3,7 @@ prompt *I: ScriptBOF hmx_log_data.sql
 create table hmx_log_data
   (log_pkid             number(38,0)                default on null hmx_log_data_seq.nextval not null
   ,log_msg              varchar2(4000 char)
-  ,log_time             timestamp (9) with local time zone default on null current_timestamp (9) not null
+  ,log_time             timestamp (6) with local time zone default on null current_timestamp not null
   ,log_type             varchar2(8 char)            default on null 'INFO'
   ,log_level            number(3,0)                 default on null 0
   ,log_scope            varchar2(10 char)           default on null 'ANYONE'
