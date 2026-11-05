@@ -1,5 +1,9 @@
+Prompt *I: Start test with a fresh session: RESET_PACKAGE
+exec dbms_session.reset_package;
+-- Open spoolfile
 @hmx_spoolstart hmx_log_tests_01.sql
 prompt *I: ScriptBOF hmx_log_tests_01.sql
+prompt *I: Spooling to &v_spoolfile.
 
 set heading off
 @hmx_session_info
@@ -12,15 +16,17 @@ set heading on
 .HMX_OBJECT_NOTES:
     This script tests the HMX_LOG package which is expected to be the one-and-only
     process logging tool (next to the HMX_DDL_LOG functions).
-    
+
     This script is expected to be run from SQLcl
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-04 16:09:29 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 08:58:18 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
+
+
 
 -- ======================================= PROCESSING START ========================================
 declare
@@ -52,7 +58,7 @@ declare
     l_log_osuser            hmx_log_data.log_osuser%type;
     l_log_app_user          hmx_log_data.log_app_user%type;
 
---####
+--#### GEWIJZIGD T.O.V. hmx_utl_pkg_tests.sql ##################################################################################################
     k_line_offset   constant number := 24 - $$plsql_line;   -- the literal must be the actual line number of THIS script line.
     k_format_num    constant varchar2(40) := '99999999999999999999999999990d0000000000';
     k_format_date   constant varchar2(23) := 'yyyy-mm-dd"T"hh24:mi:ss';
@@ -62,7 +68,11 @@ declare
 
     "\t"  constant varchar2(1) := chr(09);
 
-    l_test          varchar2(32767);
+    type t_test_desc is record
+        (id    varchar2(5)      -- assumed format 99.99
+        ,title varchar2(100)
+        );
+    l_test          t_test_desc;
     l_result_char   varchar2(32767);
     l_expected_char varchar2(32767);
     l_result_num    number;
@@ -129,13 +139,17 @@ declare
     -- - pi_result     = the resulted value
     -- - pi_compare_op = the compare operator, default is "="
     --   Examples for pi_compare_op:
-    --   - "=" ........: pi_result = pi_expected
+    --   - "=" ........: pi_result =  pi_expected
     --   - "<>" .......: pi_result <> pi_expected
+    --   - ">" ........: pi_result  > pi_expected
+    --   - ">=" .......: pi_result >= pi_expected
+    --   - "<" ........: pi_result <  pi_expected
+    --   - "<=" .......: pi_result <= pi_expected
     --   - "rx_match"..: regexp_count(pi_result, pi_expected, 1, 'c')
     --   - "like"......: pi_result like pi_expected escape '^'
     procedure check_pass_fail
         (pi_plsql_line in number
-        ,pi_test       in varchar2
+        ,pi_test       in t_test_desc
         ,pi_expected   in varchar2
         ,pi_result     in varchar2
         ,pi_compare_op in varchar2 := '='    -- Possible are: =, <>, rx_match, like
@@ -152,13 +166,33 @@ declare
             then
                 l_check := k_pass;
             else
-                l_check := case when pi_expected = pi_result then k_pass else k_fail end;
+                l_check := case when pi_result = pi_expected then k_pass else k_fail end;
             end if;
 
         elsif pi_compare_op = '<>'
         then
             lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
-            l_check := case when pi_expected <> pi_result then k_pass else k_fail end;
+            l_check := case when pi_result <> pi_expected then k_pass else k_fail end;
+
+        elsif pi_compare_op = '>'
+        then
+            lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
+            l_check := case when pi_result > pi_expected then k_pass else k_fail end;
+
+        elsif pi_compare_op = '>='
+        then
+            lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
+            l_check := case when pi_result >= pi_expected then k_pass else k_fail end;
+
+        elsif pi_compare_op = '<'
+        then
+            lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
+            l_check := case when pi_result < pi_expected then k_pass else k_fail end;
+
+        elsif pi_compare_op = '<='
+        then
+            lprt('*D: ' || pi_compare_op || '(''' || pi_result || ''',''' || pi_expected || ''';');
+            l_check := case when pi_result <= pi_expected then k_pass else k_fail end;
 
         elsif lower(pi_compare_op) = 'rx_match'
         then
@@ -178,7 +212,7 @@ declare
         incr(l_counters(l_check));
 
         lprt('[' || trim(to_char(prtline#(pi_plsql_line), '0000')) || ']'
-            || ' ' || l_check || ' : '  || pi_test
+            || ' ' || l_check || ' : '  || pi_test.id || ' - ' || pi_test.title
             || ' - expected='  || prtval(pi_expected)
             || '; result='     || prtval(pi_result)
             || '; compare_op=' || prtval(pi_compare_op)
@@ -192,7 +226,7 @@ declare
     -- Overload for numeric checks
     procedure check_pass_fail
         (pi_plsql_line in number
-        ,pi_test       in varchar2
+        ,pi_test       in t_test_desc
         ,pi_expected   in number
         ,pi_result     in number
         ,pi_compare_op in varchar2 := '='    -- Possible are: =, <>, rx_match, like
@@ -212,7 +246,7 @@ declare
     -- Overload for date checks
     procedure check_pass_fail
         (pi_plsql_line in number
-        ,pi_test       in varchar2
+        ,pi_test       in t_test_desc
         ,pi_expected   in date
         ,pi_result     in date
         ,pi_compare_op in varchar2 := '='    -- Possible are: =, <>, rx_match, like
@@ -230,24 +264,33 @@ declare
             );
     end check_pass_fail;
 
---####
+--#### GEWIJZIGD T.O.V. hmx_utl_pkg_tests.sql ##################################################################################################
+
 
     -- ---------------------------------------------------------------------------------------------
     --                           TEST UNITS
+    -- ---------------------------------------------------------------------------------------------
+
     -- ---------------------------------------------------------------------------------------------
     procedure test_set_process_id
     as
         l_hmx_log_row   hmx_log_data%rowtype;
     begin
-        l_test := '01 - Set the process id: PASS';
-        l_expected_char := 'Test01';
+        l_test := t_test_desc('01.01','Set+Get the process id');
+        l_expected_char := 'Test_' || l_test.id;
+        hmx_log.set_process_id(pi_process_id => l_expected_char);
+        l_result_char := hmx_log.get_process_id;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('01.02','Set+Logged the process id');
+        l_expected_char := 'Test_' || l_test.id;
         hmx_log.set_process_id(pi_process_id => l_expected_char);
         l_hmx_log_row.log_pkid := hmx_log.f_log_msg
-                                    (pi_log_msg     => l_test
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
                                     ,pi_log_level   => hmx_log.k_normal
                                     ,pi_log_type    => hmx_log.k_testing
                                     ,pi_log_scope   => hmx_log.k_tester
-                                    ,pi_log_tags    => 'HMX-dev'
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
                                     ,i_skip_units   => null
@@ -255,7 +298,152 @@ declare
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_process;
         check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+
+        -- set default for next tests
+        lprt('*A: New pocess-id for next tests applied in the logging: ' || hmx_log.new_process_id);
+
     end test_set_process_id;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_set_app_user
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+    begin
+        l_test := t_test_desc('02.01','Set+Get the App User: =USER?');
+        l_expected_char := user;
+        dbms_application_info.set_client_info (client_info => null);
+        hmx_log.set_app_user;
+        l_result_char := hmx_log.get_app_user;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+        -- -----------------------------------------------------------------------------------------
+        l_expected_char := user;
+        dbms_application_info.set_client_info (client_info => null);
+        hmx_log.set_app_user;
+        l_test := t_test_desc('02.02','Set+logged the App User: =USER?');
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := l_hmx_log_row.log_app_user;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+
+        -- -----------------------------------------------------------------------------------------
+        l_test := t_test_desc('02.03','Set+Get the App User: from Client Info?');
+        l_expected_char := 'USER ' || l_test.id;
+        dbms_application_info.set_client_info (client_info => 'Logged in as: ' || l_expected_char);
+        hmx_log.set_app_user;
+        l_result_char := hmx_log.get_app_user;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+
+        l_test := t_test_desc('02.04','Set+logged the App User: from Client Info?');
+        l_expected_char := 'USER ' || l_test.id;
+        dbms_application_info.set_client_info (client_info => 'Logged in as: ' || l_expected_char);
+        hmx_log.set_app_user;
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := l_hmx_log_row.log_app_user;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+
+        -- set default for next tests
+        dbms_application_info.set_client_info (client_info => null);
+        hmx_log.set_app_user;
+
+    end test_set_app_user;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_set_minimum_log_level
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+    begin
+        l_test := t_test_desc('03.01','Set+Get Minimum log level');
+        l_expected_num  := hmx_log.k_attention;
+        l_expected_char := l_expected_num || ' = ' || hmx_log.log_level_name(pi_log_level_num => l_expected_num);
+        hmx_log.set_minimum_log_level(pi_log_level => l_expected_num);
+        l_result_num  := hmx_log.get_minimum_log_level;
+        l_result_char := l_result_num || ' = ' || hmx_log.log_level_name(pi_log_level_num => l_result_num);
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char);
+        -- -----------------------------------------------------------------------------------------
+        -- verify that logging only occurs when the message level is not less than the minimum
+        -- logging level: hmx_log.k_attention.
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_attention);
+        l_test := t_test_desc('03.02','Logging (normal) not below Minimum log Level ' || hmx_log.log_level_name || '.');
+        l_expected_num  := hmx_log.k_skipped_too_low_log_level;
+        l_expected_char := '#ERROR# LOG_PKID ' || to_char(null) || ' NOT FOUND' || '%';
+        l_result_num := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_test.id || ' - ' || l_test.title
+                                    ,pi_log_level   => hmx_log.k_normal
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        check_pass_fail ($$plsql_line, l_test, l_expected_num, l_result_num);
+
+        l_test := t_test_desc('03.03','Logging (normal) not below Minimum log Level ' || hmx_log.log_level_name || '.');
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char := '#ERROR# LOG_PKID ' || to_char(l_hmx_log_row.log_pkid) || ' NOT FOUND';
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, 'like');
+        -- -----------------------------------------------------------------------------------------
+        -- verify that logging occurs when the message level is greater-or-equal to the minimum
+        -- logging level: hmx_log.k_attention.
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_attention);
+        l_test := t_test_desc('03.04','Logging (attention) above-equal Minimum log Level ' || hmx_log.log_level_name || '.');
+        l_expected_num  := 1;
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_expected_char
+                                    ,pi_log_level   => hmx_log.k_attention
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_num  := l_hmx_log_row.log_pkid;
+        check_pass_fail ($$plsql_line, l_test, l_expected_num , l_result_num , '>=');
+
+        l_test := t_test_desc('03.05','Logging (warning) above-equal Minimum log Level ' || hmx_log.log_level_name || '.');
+        l_expected_char := l_test.id || ' - ' || l_test.title;
+        l_hmx_log_row.log_pkid := hmx_log.f_log_msg
+                                    (pi_log_msg     => l_expected_char
+                                    ,pi_log_level   => hmx_log.k_warning
+                                    ,pi_log_type    => hmx_log.k_testing
+                                    ,pi_log_scope   => hmx_log.k_tester
+                                    ,pi_log_tags    => 'HMX-dev,test' || l_test.id
+                                    ,pi_log_opt     => 0
+                                    ,pi_object_type => null
+                                    ,i_skip_units   => null
+                                    );
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_result_char   := l_hmx_log_row.log_msg;
+        check_pass_fail ($$plsql_line, l_test, l_expected_char, l_result_char, '=' );
+
+        -- set default for next tests
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_no_level);
+        lprt('*A: New minimum logging level for next tests applied in the logging: ' || hmx_log.k_no_level || ' = ' || hmx_log.log_level_name(pi_log_level_num => hmx_log.k_no_level));
+
+    end test_set_minimum_log_level;
+
+    -- ---------------------------------------------------------------------------------------------
 
 -- =========================================== MAIN LINE ===========================================
 begin
@@ -276,7 +464,11 @@ begin
     l_counters(k_fail) := 0;
     l_counters(k_error) := 0;
 
+    dbms_application_info.set_client_info (client_info => 'Started hmx_log_tests_01.sql');
+
     test_set_process_id;
+    test_set_app_user;
+    test_set_minimum_log_level;
 
     -- ---------------------------------------------------------------------------------------------
     lprt;
@@ -295,7 +487,7 @@ exception
     when others
     then
         lprt ('*E: ' || sqlerrm);
-        lprt ('    while executing test '  || l_test ||  '.');
+        lprt ('    while executing test '  || l_test.id || ' - ' || l_test.title ||  '.');
         lprt (rpad('-',80,'-')
             || chr(10) || '----- PL/SQL ERROR BACKTRACE -----'
             || chr(10) || dbms_utility.format_error_backtrace()

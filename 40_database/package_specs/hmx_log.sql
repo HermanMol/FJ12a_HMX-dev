@@ -11,7 +11,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-04 17:57:21 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 10:50:56 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -62,6 +62,11 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- Log running a script: object_type = k_script
     k_script      constant varchar2 (06) := 'SCRIPT';
 
+    -- Returned from f_log_msg when logging was skipped, because of why.
+    -- Using decimals because these cannot be primary key values of the HMX_LOG_DATA rows.
+    k_skipped_too_low_log_level  constant number := 0.1; -- message not logged, level < current minimum log level
+    k_skipped_too_many_logged    constant number := 0.2; -- logging skipped, number of logged messages > maximum log rate
+
     -- Public constant functions so they can be used in queries.
     -- Log message type, predefined constants
     -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
@@ -101,13 +106,6 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     function fk_script      return varchar2 deterministic;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function returning the default name of a numeric log level
-    function log_level_name
-        (pi_log_level_num   in number)
-    return varchar2
-    deterministic;
-
-    -- ---------------------------------------------------------------------------------------------
     -- Public function get the log level active in this session
     function get_minimum_log_level
     return number;
@@ -117,6 +115,14 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     procedure set_minimum_log_level
         (pi_log_level in number := null
         );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the default name of a numeric log level.
+    -- When no number requested the current setting is returned.
+    function log_level_name
+        (pi_log_level_num   in number := get_minimum_log_level)
+    return varchar2
+    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Get the tags

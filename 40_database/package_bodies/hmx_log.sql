@@ -10,7 +10,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-04 17:57:21 +01:00
+.HMX_OBJECT_VERSION: 2026-11-05 10:50:15 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -33,7 +33,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- to hold a unique value per session and which is that is logged with the message.
     s_process_id        hmx_log_data.log_process%type;
 
-    s_minimum_log_level number                              := fk_attention;
+    s_minimum_log_level number                         := k_attention;
     s_app_user          hmx_log_data.log_app_user%type := null;
     s_tags              hmx_log_data.log_tags%type     := null;
 
@@ -84,9 +84,10 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     function fk_script      return varchar2 deterministic is begin return k_script    ; end;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function returning the default name of a numeric log level
+    -- Public function returning the default name of a numeric log level.
+    -- When no number requested the current setting is returned.
     function log_level_name
-        (pi_log_level_num   in number)
+        (pi_log_level_num   in number := get_minimum_log_level)
     return varchar2
     deterministic
     as
@@ -150,6 +151,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         pio_hmx_log_rec.log_org_method := 'BP_INIT_hmx_log_DATA_RECORD';
         pio_hmx_log_rec.log_org_line   := $$plsql_line;
         pio_hmx_log_rec.log_call_depth := 0;
+        pio_hmx_log_rec.log_app_user   := s_app_user;
     end bp_init_hmx_log_data_record;
 
     -- ---------------------------------------------------------------------------------------------
@@ -199,7 +201,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         bp_generate_process_id();
         set_last_logtime;
         set_app_user;
-        s_minimum_log_level := fk_normal;
+        s_minimum_log_level := k_normal;
         s_max_log_rate      := k_max_log_rate_default;
     end bp_init_package;
 
@@ -281,10 +283,10 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         else
             l_client_info := sys_context('USERENV','CLIENT_INFO');
             -- SEE, DEPENDS ON some log-in function  dbms_application_info.set_client_info (client_info => !!
-            if  regexp_count(l_client_info,'^Logged in as: [0-9]{3,10}',1,'c') <> 0
+            if  regexp_count(l_client_info,'^Logged in as: [[:print:]]{3,10}',1,'c') <> 0
             and pi_from_sys = true
             then
-                s_app_user := regexp_substr(l_client_info,'^Logged in as: ([0-9]{3,10})',1,1,'c',1);
+                s_app_user := regexp_substr(l_client_info,'^Logged in as: ([[:print:]]{3,10})',1,1,'c',1);
             else
                 s_app_user := nvl(pi_app_user, user);
             end if;
@@ -377,15 +379,21 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         l_called_from_details   hmx_call_stack.t_called_from_info_rec;
         l_hmx_log_rec           hmx_log_data%rowtype;
         l_log_id                number;
-        l_now                   timestamp(9) with time zone;
-        l_since                 number(11,2);
-        l_logging_msg           hmx_log_data.log_msg%type := null;
+-- TODO max rate?        l_now                   timestamp(9) with time zone;
+-- TODO max rate?        l_since                 number(11,2);
+-- TODO what for?        l_logging_msg           hmx_log_data.log_msg%type := null;
         l_log_opt               pls_integer;  -- initially pi_log_opt but might be changed.
-        l_minimum_level         varchar2(10);
-        l_log_type              hmx_log_data.log_type%type := null;
-        l_txt_cached_msg        varchar2(4000) := null;
 
     begin
+
+        if pi_log_level < s_minimum_log_level
+        then
+            return k_skipped_too_low_log_level; -- message not logged, level < current minimum log level
+        end if;
+
+    /* TODO max_log_rate 2026-11-05 10:44:30
+        k_skipped_too_many_logged    constant number := 0.2 -- logging skipped, number of logged messages > maximum log rate
+    */
 
         bp_init_hmx_log_data_record(l_hmx_log_rec);
 
@@ -394,16 +402,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
 
-        -- prevent a nasty looping :-) when called from gdb_tools.hmx_log_ctx_api.log_context_values
-        -- only needed during development of this perticular package
-        -- *skip     if  not (   pi_type = fk_logging
-        -- *skip             and pi_tags = 'LOG_CONTEXT_VALUES'
-        -- *skip             )
-        -- *skip     then
-        -- *skip       gdb_tools.hmx_log_ctx_api.log_context_values(pi_text => 'LOG_MSG');
-        -- *skip     end if;
-
-        l_log_opt := pi_log_opt;    -- TODO
+        l_log_opt := pi_log_opt;
 
         l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => nullif(i_skip_units || ',',',') || $$plsql_unit);
         l_hmx_log_rec.log_msg             := pi_log_msg;
@@ -490,12 +489,12 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         -- insert the logging into the hmx_log_DATA table
         l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
 
-        if l_logging_msg is not null    -- TODO what is this for
-        then
-            l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
-            l_hmx_log_rec.log_type := fk_logging;
-            l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
-        end if;
+-- ??        if l_logging_msg is not null    -- TODO what is this for??
+-- ??        then
+-- ??            l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
+-- ??            l_hmx_log_rec.log_type := fk_logging;
+-- ??            l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
+-- ??        end if;
 
         return l_log_id;
     end f_log_msg;
