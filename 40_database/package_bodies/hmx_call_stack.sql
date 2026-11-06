@@ -11,7 +11,7 @@ is
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 15:26:41 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:57:31 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -20,16 +20,16 @@ is
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns all details where this was called from.
     -- Parameters:
-    -- - i_skip_units = optional comma-separated list of object-names to ignore when retrieving
+    -- - pi_skip_units = optional comma-separated list of object-names to ignore when retrieving
     --     the object that called this function. this to enable calling this function from a logging
     --     module and ignoring that logging module entry in the call stack.
     function get_called_from_details
-        (i_skip_units in varchar2 := null
+        (pi_skip_units in varchar2 := null
         )
     return t_called_from_info_rec
     as
         lk_skip_units           constant varchar2(32767) := ',' || $$plsql_unit  -- this package is always ignored
-                                                         || ',' || upper(i_skip_units) || ',';
+                                                         || ',' || upper(pi_skip_units) || ',';
 
         l_called_from_info_rec  t_called_from_info_rec;
         l_qualname              utl_call_stack.unit_qualified_name;
@@ -114,11 +114,11 @@ is
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the object name and line number where this was called from.
     -- Parameters:
-    -- - i_skip_units = optional comma-separated list of object-names to ignore when retrieving
+    -- - pi_skip_units = optional comma-separated list of object-names to ignore when retrieving
     --     the object that called this function. this to enable calling this function from a logging
     --     module and ignoring that logging module entry in the call stack.
     function get_called_from
-        (i_skip_units in varchar2 := null
+        (pi_skip_units in varchar2 := null
         )
     return varchar2
     as
@@ -127,7 +127,7 @@ is
     begin
 
         l_called_from_info_rec := get_called_from_details
-            (i_skip_units => i_skip_units);
+            (pi_skip_units => pi_skip_units);
 
         if l_called_from_info_rec.dynamic_depth < 1
         then

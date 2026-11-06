@@ -34,7 +34,7 @@ set feedback on
 prompt *I: Disable the DDL trigger ...
 alter trigger if exists hmx_ddl_logging disable;
 prompt *I: Generated drop if objects ...
--- generated using above query at 2026-11-04 14:19:28 CET
+-- generated using above query at 2026-11-06 15:34:26 CET
 drop operator   if exists is_equal;
 drop operator   if exists to_num_val;
 drop operator   if exists trimws;

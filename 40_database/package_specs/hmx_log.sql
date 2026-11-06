@@ -4,18 +4,18 @@ AUTHID CURRENT_USER
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package holds the processing logging functionality.
+.HMX_OBJECT_USAGE: This package holds the HMX processing logging functionality.
 
 .HMX_OBJECT_NOTES:
 Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-05 18:16:46 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:21:36 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
-** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
+** </hmx-annotations> */
 
     -- Constants related to this package
     -- For pi_log_opt to control additional logging using bitwise value (BITAND)
@@ -25,8 +25,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     k_force_logging       constant number(1,0) := 8;
 
     -- Public constants.
+    
     -- Log message type, predefined constants
-    -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
     k_info        constant varchar2(8) := 'INFO';  -- default
     k_tech        constant varchar2(8) := 'TECH';
     k_func        constant varchar2(8) := 'FUNC';
@@ -37,6 +37,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     k_auditing    constant varchar2(8) := 'AUDIT';
     k_security    constant varchar2(8) := 'SECURITY';
     k_logging     constant varchar2(8) := 'LOGGING';   -- internally hmx_log usage
+    
     -- Log message level, predefined constants
     -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
     -- call stack level the log message was issued.
@@ -49,8 +50,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     k_severe      constant number(2,0) := 30; -- more serious error that just an error
     k_critical    constant number(2,0) := 35; -- unrecoverable, abort processing
     k_force       constant number(2,0) := 99; -- just force log without any other reason
+
     -- Log message scope, predefined constants
-    -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
     k_anyone      constant varchar2 (10) := 'ANYONE';  -- default
     k_developer   constant varchar2 (10) := 'DEVELOPER';
     k_tester      constant varchar2 (10) := 'TESTER';
@@ -69,7 +70,6 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
     -- Public constant functions so they can be used in queries.
     -- Log message type, predefined constants
-    -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
     function fk_info        return varchar2 deterministic;
     function fk_tech        return varchar2 deterministic;
     function fk_func        return varchar2 deterministic;
@@ -80,6 +80,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     function fk_auditing    return varchar2 deterministic;
     function fk_security    return varchar2 deterministic;
     function fk_logging     return varchar2 deterministic;
+
     -- Log message level, predefined constants
     -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
     -- call stack level the log message was issued.
@@ -92,8 +93,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     function fk_severe      return number   deterministic;
     function fk_critical    return number   deterministic;
     function fk_force       return number   deterministic;
+
     -- Log message scope, predefined constants
-    -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
     function fk_anyone      return varchar2 deterministic;
     function fk_developer   return varchar2 deterministic;
     function fk_tester      return varchar2 deterministic;
@@ -120,7 +121,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- Public function returning the default name of a numeric log level.
     -- When no number requested the current setting is returned.
     function log_level_name
-        (pi_log_level_num   in number := get_minimum_log_level)
+        (pi_log_level_num   in number := get_minimum_log_level
+        )
     return varchar2
     deterministic;
 
@@ -162,13 +164,13 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- For explanation see the comments for procedure LOG_MSG.
     function f_log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
-        ,i_skip_units   in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         )
     return number;
     -- ---------------------------------------------------------------------------------------------
@@ -195,20 +197,20 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
     --              will work. If no object type can be registered with the log message, then
     --              default "PACKAGE BODY" is probably the best guess.
-    -- - i_skip_units = the comma-separated list of unit names that should be skipped when trying
+    -- - pi_skip_units = the comma-separated list of unit names that should be skipped when trying
     --              to find the calling unit in the call stack. This package HMX_LOG is skipped
     --              by default.
     --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
     --       this should not be used when called from another package. TYPE will be set to LOGGING
     procedure log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
-        ,i_skip_units   in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         );
 
     -- ---------------------------------------------------------------------------------------------
@@ -219,12 +221,14 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
     -- ---------------------------------------------------------------------------------------------
     -- Set the maximum logged messages per second
-    -- When the process exceeds this number, ALL logging is suppressed
-    -- The returned number is the old value.
-    -- Allowed values for p_rate: between 1 and 1000 (inclusive). When an
-    -- invalid value is specified the default 50 messages / second is used.
+    -- When the process exceeds this number withinh 1 second , ALL logging is suppressed until
+    -- the time frame is done.
+    -- The value returned from this function is the old value.
+    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an invalid value is 
+    -- specified the default messages / second is used. The pi_rate is "FLOOR"-ed.
     function set_max_log_rate
-        (pi_rate  in number := null)
+        (pi_rate  in number := null
+        )
     return number;
 
     -- ---------------------------------------------------------------------------------------------
@@ -242,7 +246,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- Example: testrun_2023-05-15T14:52:22
     -- The (internal) process_id is automatically set to some GUID when this package is instantiated.
     procedure set_process_id
-        (pi_process_id in varchar2);
+        (pi_process_id in varchar2
+        );
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to initialize the cached message stack.
@@ -250,7 +255,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to add a message to the message stack for possible later print
-    procedure cache_msg (pi_log_msg in varchar2);
+    procedure cache_msg 
+        (pi_log_msg in varchar2
+        );
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to retrieve all cached messages (separated by LF) in a string, maximum 32767 characters.

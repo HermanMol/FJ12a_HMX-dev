@@ -5,17 +5,14 @@ This note describes the conventions used in the HMX domain.
 
 ### Main conventions
     - Database object source file names
-        - Always _all_ lowercase
+        - Folder structure follow the Oracle SQLcl `project export`
+        - Object file names  follow the Oracle SQLcl `project export`
         - Always extension .sql
-        - Start with the object name
-        - End with a 3-character type abbreviation. 
-          See the HMX database object type abbreviations list (see below)
-        - Example: `hmx_call_stack_pkb.sql` is the source file of the HMX_CALL_STACK package body.
-        - Example: `hmx_call_stack_pkg_install.sql` is installation for the HMX_CALL_STACK package spec and body.
+        - Example: `hmx_call_stack.sql` in the package_bodies folder is the source file of the HMX_CALL_STACK package body.
     - Prefixes used in sources: See HMX prefixes used in source files (below)
 
 ### HMX database object type abbreviations
-In the HMX domain, next abbreviations are used in source file names for the database (schema level) object types.
+In the HMX domain, next abbreviations can be used for the database (schema level) object types.
 
 | HMX Abbr. | Oracle DDL type | HMX notes |
 |:--- |:--- |:--- |
@@ -83,7 +80,7 @@ In the HMX domain next prefixes are used in source files:
 | c       | cursor             | - |
 | k       | constant           | - |
 | pi      | input parameter    | For functions and procedures |
-| po      | output parameter   | For functions and procedures |
+| po      | output parameter   | For procedures. Functions only have the return value, **never** an output parameter. |
 | pio     | in/out parameter   | For procedures. Functions only have the return value, **never** an output parameter. |
 | ci      | input parameter    | For cursors |
 | ix      | index              | For loops, when the index is not separately defined: the index is only accessible inside the scope of the itteration |
@@ -152,7 +149,7 @@ The HMX-annotations are implemented as regular multiple line comments. Example, 
     ...
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-22 10:58:08 +02:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:01:59 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -196,6 +193,7 @@ Example:
 
 | Date       | Author  | Description         |
 |:----------:|:-------:|:--------------------|
+| 2026-11-06 | H.Mol   | Changed to using the Oracle SQLcl `project export` way of source files. |
 | 2026-10-28 | H.Mol   | Few little fixes    |
 | 2026-10-19 | H.Mol   | New                 |
 | "          | "     | Using [MarkDown](https://daringfireball.net/projects/markdown/syntax) and [CommonMark](https://commonmark.org/) |

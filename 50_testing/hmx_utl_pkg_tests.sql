@@ -10,7 +10,7 @@ prompt *I: ScriptBOF hmx_utl_pkg_tests.sql
 .HMX_DEVELOPER_NOTES:
     - See HMX General Developer Notes
 
-.HMX_OBJECT_VERSION: 2026-10-28 12:32:51 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:43:06 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -572,7 +572,7 @@ begin
     lprt('*I: Test result summary:');
     lprt('    - Passed: ' || l_counters(k_pass) );
     lprt('    - Failed: ' || l_counters(k_fail) );
-    lprt('    - Error : ' || l_counters(k_error) );
+    lprt('    - Error : ' || l_counters(k_error) || ' (1 error is expected!)');
 
     lprt;
     lprt ('*I: Finished hmx_utl_pkg_tests.sql at script line ' || to_char(prtline#($$plsql_line) ) );

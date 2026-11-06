@@ -15,17 +15,18 @@ as
     Package is only accessible by package HMO_LOG.
     Function is AUTONOMOUS TRANSACTION.
 
-.HMX_OBJECT_VERSION: 2026-10-23 10:34:47 +02:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:23:03 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 
-  -- ---------------------------------------------------------------------------------------------
-  -- public function performing the actual insert AUTONOMOUS_TRANSACTION
-  function insert_hmx_log_data
-    (pi_hmx_log_rec in hmx_log_data%rowtype)
-  return number;
+    -- ---------------------------------------------------------------------------------------------
+    -- public function performing the actual insert AUTONOMOUS_TRANSACTION
+    function insert_hmx_log_data
+        (pi_hmx_log_rec in hmx_log_data%rowtype
+        )
+    return number;
 
 end hmx_log_core;
 /

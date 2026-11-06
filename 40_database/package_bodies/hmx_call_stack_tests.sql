@@ -13,7 +13,7 @@ as
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 15:32:00 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:57:35 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -29,7 +29,7 @@ as
     begin
         prt('*I: Begin P_04');
         -- Keep next line as ONE line!
-        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         PRT('*i: ... blablabla ...');
@@ -49,7 +49,7 @@ as
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
-            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
             prt('FORMAT_CALL_STACK'      || chr(10) || DBMS_UTILITY.FORMAT_CALL_STACK);
@@ -69,7 +69,7 @@ as
     begin
         prt('*I: Begin P_03');
         -- Keep next line as ONE line!
-        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         p_04;
@@ -88,7 +88,7 @@ as
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
-            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
             prt('FORMAT_CALL_STACK'      || chr(10) || DBMS_UTILITY.FORMAT_CALL_STACK);
@@ -108,7 +108,7 @@ as
     begin
         prt('*I: Begin p_02');
         -- Keep next line as ONE line!
-        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         p_03;
@@ -127,7 +127,7 @@ as
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
-            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
             prt('FORMAT_CALL_STACK'      || chr(10) || DBMS_UTILITY.FORMAT_CALL_STACK);
@@ -147,7 +147,7 @@ as
     begin
         prt('*I: Begin P_01');
         -- Keep next line as ONE line!
-        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         P_02;
@@ -166,7 +166,7 @@ as
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
-            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
             prt('FORMAT_CALL_STACK'      || chr(10) || DBMS_UTILITY.FORMAT_CALL_STACK);
@@ -198,7 +198,7 @@ as
         -- Next statement calls the hmx_call_stack.get_called_from (which itself will be skipped in the call-stack scanning).
         -- The <$$$ ... $$$> part will contain the actual name and linenumber of this statement in the package body source in the database.
         -- Keep next line as ONE line!
-        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+        hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
         prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
         prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
         p_01;
@@ -227,7 +227,7 @@ as
             prt('*E: ' || sqlerrm );
             prt('*W: Exception ' || $$plsql_unit);
             -- Keep next line as ONE line!
-            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(i_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
+            hmx_test_log_module('*T: Called from = ' || hmx_call_stack.get_called_from(pi_skip_units => null) || '<$$$' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT || '[' || $$PLSQL_LINE || '] ' || $$PLSQL_UNIT_TYPE || '$$$>');
             prt('*T: BackTrace   = ' || hmx_call_stack.get_backtrace);
             prt('*T: Error_Stack = ' || hmx_call_stack.get_error_stack);
             prt(DBMS_UTILITY.FORMAT_CALL_STACK);

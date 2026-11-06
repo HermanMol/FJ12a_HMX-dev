@@ -3,46 +3,44 @@ create or replace package body hmx_log
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package holds the processing logging functionality.
+.HMX_OBJECT_USAGE: This package holds the HMX processing logging functionality.
 
 .HMX_OBJECT_NOTES:
 Package must be invoker rights (AUTHID CURRENT_USER)
 See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-05 18:16:36 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:58:15 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
-** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
+** </hmx-annotations> */
 
     -- Private constants related to this package body, (s_ = SELF)
-    k_anonymous  constant varchar2(50) := lower('__anonymous_block');   -- default from Oracle documentation
-    k_pkg_init   constant varchar2(50) := upper('__pkg_init');          -- the Oracle defined name for the package initialization
-    k_1_second   constant number       := 1;
     k_nill       constant varchar2(4)  := 'Nill';                       -- to differ from the standard NULL
     k_lf         constant varchar2(1)  := hmx_utl.k_lf;                 -- ASCII Line Feed
     k_1q         constant varchar2(1)  := hmx_utl.k_1q;                 -- ASCII single quote
 
-    k_max_log_rate_default constant number := 50;
+    k_max_log_rate_default  constant number := 50;
 
     -- Private global variables
     -- Private stack to cache messages e.g. to log in case of an exception.
-    s_msg_stack         string_stack_type := string_stack_type();
+    s_msg_stack             string_stack_type := string_stack_type();
 
     -- to hold a unique value per session and which is that is logged with the message.
-    s_process_id        hmx_log_data.log_process%type;
+    s_process_id            hmx_log_data.log_process%type;
 
-    s_minimum_log_level number                         := k_attention;
-    s_app_user          hmx_log_data.log_app_user%type := null;
-    s_tags              hmx_log_data.log_tags%type     := null;
+    s_minimum_log_level     number                         := k_attention;
+    s_app_user              hmx_log_data.log_app_user%type := null;
+    s_tags                  hmx_log_data.log_tags%type     := null;
 
     -- Private variables: keep track of the log rate per second, no more than ...
-    s_last_logtime      timestamp(9) with time zone;
-    s_cnt_msg_written   number(38,0) :=  0;
-    s_max_log_rate      number(6,0)  := k_max_log_rate_default;
+    s_log_rate_start        timestamp with time zone;
+    s_cnt_msg_written       number(38,0) := 0;
+    s_max_log_rate          number(6,0)  := k_max_log_rate_default;
 
-    s_last_log_pkid_written number(38,0) :=  0;
+    s_last_logtime          timestamp with time zone;
+    s_last_log_pkid_written hmx_log_data.log_pkid%type := 0;
 
 --    procedure debug_prt(pi_text in varchar2 := null) as begin dbms_output.put_line(nullif('*D: ' || pi_text, '*D: ') ); end debug_prt;
 
@@ -85,48 +83,6 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     function fk_script      return varchar2 deterministic is begin return k_script    ; end;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function returning the default name of a numeric log level.
-    -- When no number requested the current setting is returned.
-    function log_level_name
-        (pi_log_level_num   in number := get_minimum_log_level)
-    return varchar2
-    deterministic
-    as
-    begin
-        return case pi_log_level_num
-                when k_no_level  then 'None'
-                when k_cache     then 'Cache'
-                when k_normal    then 'Normal'
-                when k_attention then 'Attention'
-                when k_warning   then 'Warning'
-                when k_error     then 'Error'
-                when k_severe    then 'Severe'
-                when k_critical  then 'Critical'
-                when k_force     then 'Forced'
-                else                  'Unknown'
-               end;
-    end log_level_name;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Internal procedure to set the last time a record was logged. Used to control the logging
-    -- rate, keeping is below s_max_log_rate.
-    procedure bp_set_last_logtime
-    as
-    begin
-        s_last_logtime := current_timestamp;
-    end bp_set_last_logtime;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function that returns the timestamp that the last record was written to the 
-    -- HMX_LOG_DATA table.
-    function get_last_logtime
-    return timestamp with time zone
-    as
-    begin
-        return s_last_logtime;
-    end get_last_logtime;
-
-    -- ---------------------------------------------------------------------------------------------
     -- Package private function to initialise the hmx_log_data record
     procedure bp_init_hmx_log_data_record
         (pio_hmx_log_rec in out hmx_log_data%rowtype
@@ -134,9 +90,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     as
     begin
         pio_hmx_log_rec := null;
-        pio_hmx_log_rec.log_type       := fk_logging;
-        pio_hmx_log_rec.log_level      := fk_no_level;
-        pio_hmx_log_rec.log_scope      := fk_developer;
+        pio_hmx_log_rec.log_type       := k_logging;
+        pio_hmx_log_rec.log_level      := k_no_level;
+        pio_hmx_log_rec.log_scope      := k_developer;
         pio_hmx_log_rec.log_tags       := null;
         pio_hmx_log_rec.log_msg        := null;
         pio_hmx_log_rec.log_time       := systimestamp at time zone 'UTC';
@@ -151,7 +107,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         pio_hmx_log_rec.log_org_owner  := $$plsql_unit_owner;
         pio_hmx_log_rec.log_org_object := $$plsql_unit;
         pio_hmx_log_rec.log_org_type   := null;
-        pio_hmx_log_rec.log_org_method := 'BP_INIT_hmx_log_DATA_RECORD';
+        pio_hmx_log_rec.log_org_method := 'BP_INIT_HMX_LOG_DATA_RECORD';
         pio_hmx_log_rec.log_org_line   := $$plsql_line;
         pio_hmx_log_rec.log_call_depth := 0;
         pio_hmx_log_rec.log_app_user   := s_app_user;
@@ -167,8 +123,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     begin
         -- insert the logging into the hmx_log_DATA table
         s_last_log_pkid_written := hmx_log_core.insert_hmx_log_data(pi_hmx_log_rec);
-        s_cnt_msg_written := coalesce(s_cnt_msg_written,0) + 1;
-        bp_set_last_logtime; -- to control the maximum logging per second
+        s_last_logtime := current_timestamp;
+        s_cnt_msg_written := s_cnt_msg_written + 1;
         return s_last_log_pkid_written;
     end bf_insert_hmx_log_data;
 
@@ -202,22 +158,67 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     is
     begin
         bp_generate_process_id();
-        bp_set_last_logtime;
         set_app_user;
         s_minimum_log_level := k_normal;
         s_max_log_rate      := k_max_log_rate_default;
     end bp_init_package;
 
     -- ---------------------------------------------------------------------------------------------
-    -- private function that returns the last issued hmx_log_data sequence
-    function bf_get_last_log_seq
-    return number
+    -- Internal function checking the amount of logging requests per second.
+    -- It must be less than the s_max_log_rate to avoid execessive logging e.g. in a tight loop.
+    function bf_logging_rate_ok
+    return boolean
     as
-        l_last_seq  number;
+        l_retval    boolean := false;
     begin
-        select max(log_pkid) into l_last_seq from hmx_log_data;
-        return nvl(l_last_seq,-1);
-    end bf_get_last_log_seq;
+        if s_log_rate_start is null
+        or current_timestamp >= s_log_rate_start + TO_DSINTERVAL('00 00:00:01')    -- one second
+        then
+            l_retval          := true;                  -- OK to log
+            s_cnt_msg_written := 0;                     -- reset counter
+            s_log_rate_start  := current_timestamp;     -- reset start of time frame
+        elsif s_cnt_msg_written <= (s_max_log_rate - 1) -- s_cnt_msg_written for first request starts with zero...
+        then
+            l_retval := true;   -- OK to log
+        else
+            -- Refuse: too many logging requests in 1 second
+            l_retval := false;
+        end if;
+        return l_retval;
+    end bf_logging_rate_ok;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the default name of a numeric log level.
+    -- When no number requested the current setting is returned.
+    function log_level_name
+        (pi_log_level_num   in number := get_minimum_log_level)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case pi_log_level_num
+                when k_no_level  then 'None'
+                when k_cache     then 'Cache'
+                when k_normal    then 'Normal'
+                when k_attention then 'Attention'
+                when k_warning   then 'Warning'
+                when k_error     then 'Error'
+                when k_severe    then 'Severe'
+                when k_critical  then 'Critical'
+                when k_force     then 'Forced'
+                else                  'Unknown'
+               end;
+    end log_level_name;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the timestamp that the last record was written to the 
+    -- HMX_LOG_DATA table.
+    function get_last_logtime
+    return timestamp with time zone
+    as
+    begin
+        return s_last_logtime;
+    end get_last_logtime;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function get the log level active in this session
@@ -250,8 +251,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- ---------------------------------------------------------------------------------------------
     -- Set the whole new logging tags
     procedure set_tags
-    (pi_tags      in varchar2
-    )
+        (pi_tags      in varchar2
+        )
     as
     begin
         s_tags := pi_tags;
@@ -260,8 +261,8 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     -- ---------------------------------------------------------------------------------------------
     -- Add tags to possibly existing logging tags, separated by a semicolon
     procedure add_tags
-    (pi_tags      in varchar2
-    )
+        (pi_tags      in varchar2
+        )
     as
     begin
         s_tags := nullif(s_tags || ';', ';') || pi_tags;
@@ -318,25 +319,29 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
     -- ---------------------------------------------------------------------------------------------
     -- Set the maximum logged messages per second
-    -- When the process exceeds this number, ALL logging is suppressed
-    -- The returned number is the old value.
-    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an
-    -- invalid value is specified the default messages / second is used.
+    -- When the process exceeds this number withinh 1 second , ALL logging is suppressed until
+    -- the time frame is done.
+    -- The value returned from this function is the old value.
+    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an invalid value is 
+    -- specified the default messages / second is used. The pi_rate is "FLOOR"-ed.
     function set_max_log_rate
         (pi_rate  in number := null)
     return number
     as
         l_old_rate  number;
+        l_new_rate  number;
     begin
+        l_new_rate := coalesce(floor(pi_rate),k_max_log_rate_default);
         l_old_rate := s_max_log_rate;
-        if pi_rate between 1 and 1000
+        if l_new_rate between 1 and 1000
         then
-            s_max_log_rate := pi_rate;
+            s_max_log_rate := l_new_rate;
         else
             s_max_log_rate := k_max_log_rate_default;
         end if;
-        -- reset counter
+        -- reset counter and start of the time frame
         s_cnt_msg_written := 0;
+        s_log_rate_start  := current_timestamp;
 
         return l_old_rate;
     end set_max_log_rate;
@@ -372,49 +377,27 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     end set_process_id;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Internal function checking the amount of logging requests per second.
-    -- It must be less than the s_max_log_rate to avoid execessive logging e.g. in a tight loop.
-    function bf_logging_rate_ok
-    return boolean
-    as
-        l_retval    boolean := false;
-    begin
-        if current_timestamp > s_last_logtime + TO_DSINTERVAL('00 00:00:01')    -- one second
-        then
-            l_retval := true;           -- OK to log
-            s_cnt_msg_written := 0;     -- reset counter
-        elsif s_cnt_msg_written <= s_max_log_rate
-        then
-            l_retval := true;   -- OK to log
-        else
-            -- Refuse: too many logging requests in 1 second
-            l_retval := false;
-        end if;
-        return l_retval;
-    end bf_logging_rate_ok;
-
-    -- ---------------------------------------------------------------------------------------------
     -- Log the message and return the created primary key.
     -- Mainly used for testing, being able to check the added log record.
     -- For explanation see the comments for procedure LOG_MSG.
     function f_log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
-        ,i_skip_units   in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         )
-    return number
+    return number   -- must be able to have decimals: See k_skipped_too_many_logged and k_skipped_too_low_log_level
     is
         l_in_exception_handling varchar2(1) := hmx_utl.k_no;
         l_called_from_details   hmx_call_stack.t_called_from_info_rec;
         l_hmx_log_rec           hmx_log_data%rowtype;
         l_log_id                number;
--- TODO what for?        l_logging_msg           hmx_log_data.log_msg%type := null;
         l_log_opt               pls_integer;  -- initially pi_log_opt but might be changed.
+-- TODO what for?        l_logging_msg           hmx_log_data.log_msg%type := null;
 
     begin
 
@@ -423,6 +406,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
         -- If cache message is requested, no matter what the situation always cache the message in
         -- the internal string stack of max 50 varchar2(4000) entries.
         if bitand(l_log_opt,k_add_cached_msg) = k_add_cached_msg
+        or pi_log_level = k_cache
         then
             cache_msg(hmx_utl.f_max_chars(pi_log_msg,4000) );
         end if;
@@ -444,7 +428,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
 
-        l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => nullif(i_skip_units || ',',',') || $$plsql_unit);
+        l_called_from_details := hmx_call_stack.get_called_from_details(pi_skip_units => nullif(pi_skip_units || ',',',') || $$plsql_unit);
         l_hmx_log_rec.log_msg             := hmx_utl.f_max_chars(pi_log_msg,4000);
         l_hmx_log_rec.log_type            := hmx_utl.f_max_chars(pi_log_type,8,null,null);
         l_hmx_log_rec.log_level           := pi_log_level;
@@ -542,7 +526,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 -- ??        if l_logging_msg is not null    -- TODO what is this for??
 -- ??        then
 -- ??            l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
--- ??            l_hmx_log_rec.log_type := fk_logging;
+-- ??            l_hmx_log_rec.log_type := k_logging;
 -- ??            l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
 -- ??        end if;
 
@@ -573,20 +557,20 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
     --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
     --              will work. If no object type can be registered with the log message, then
     --              default "PACKAGE BODY" is probably the best guess.
-    -- - i_skip_units = the comma-separated list of unit names that should be skipped when trying
+    -- - pi_skip_units = the comma-separated list of unit names that should be skipped when trying
     --              to find the calling unit in the call stack. This package HMX_LOG is skipped
     --              by default.
     --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
     --       this should not be used when called from another package. TYPE will be set to LOGGING
     procedure log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
-        ,i_skip_units   in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         )
     as
         l_log_id number;
@@ -599,7 +583,7 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             ,pi_log_tags    => pi_log_tags
             ,pi_log_opt     => pi_log_opt
             ,pi_object_type => pi_object_type
-            ,i_skip_units   => i_skip_units
+            ,pi_skip_units  => pi_skip_units
             );
     end log_msg;
 
@@ -613,7 +597,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to add a message to the message stack for possible later print
-    procedure cache_msg (pi_log_msg in varchar2)
+    procedure cache_msg 
+        (pi_log_msg in varchar2
+        )
     as
     begin
         s_msg_stack.push(pi_log_msg);
@@ -722,9 +708,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
             then
                 log_msg
                     (pi_log_msg   => '*E While executing dynamic SQL: ' || replace(nvl(l_sql,k_nill),k_lf,null)
-                    ,pi_log_type  => fk_logging
-                    ,pi_log_level => fk_error
-                    ,pi_log_scope => fk_developer
+                    ,pi_log_type  => k_logging
+                    ,pi_log_level => k_error
+                    ,pi_log_scope => k_developer
                     ,pi_log_opt   => k_log_call_stack + k_log_error_backtrace + k_force_logging
                     ,pi_log_tags  => 'APEX_ERROR'
                     );
@@ -886,9 +872,9 @@ See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
         log_msg
             (pi_log_msg   => l_text
-            ,pi_log_type  => fk_logging
-            ,pi_log_level => fk_normal
-            ,pi_log_scope => fk_developer
+            ,pi_log_type  => k_logging
+            ,pi_log_level => k_normal
+            ,pi_log_scope => k_developer
             ,pi_log_opt   => 0
             ,pi_log_tags  => 'LOG_CONNECTION'
             );

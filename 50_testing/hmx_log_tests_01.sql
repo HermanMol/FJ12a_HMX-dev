@@ -20,12 +20,11 @@ set heading on
     This script is expected to be run from SQLcl
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-05 08:58:18 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 11:57:44 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
-
 
 
 -- ======================================= PROCESSING START ========================================
@@ -73,6 +72,7 @@ declare
         ,title varchar2(100)
         );
     l_test          t_test_desc;
+    l_test_title    varchar2(100);
     l_result_char   varchar2(32767);
     l_expected_char varchar2(32767);
     l_result_num    number;
@@ -294,7 +294,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_process;
@@ -329,7 +329,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_app_user;
@@ -355,7 +355,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_app_user;
@@ -394,7 +394,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         check_pass_fail ($$plsql_line, l_test, l_expected_num, l_result_num);
 
@@ -416,7 +416,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_num  := l_hmx_log_row.log_pkid;
@@ -432,7 +432,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char   := l_hmx_log_row.log_msg;
@@ -466,7 +466,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_tags;
@@ -495,7 +495,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => 0
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_result_char := l_hmx_log_row.log_tags;
@@ -568,7 +568,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => hmx_log.k_add_cached_msg
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
         hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
         l_test.title := 'Cache a logged message using the log option #4' || ' (from table)';
@@ -590,7 +590,7 @@ declare
                                     ,pi_log_tags    => 'HMX-dev;test' || l_test.id
                                     ,pi_log_opt     => hmx_log.k_add_cached_msg
                                     ,pi_object_type => null
-                                    ,i_skip_units   => null
+                                    ,pi_skip_units  => null
                                     );
 
         l_expected_char := 'Test ' || l_test.id || ': Returned from calling f_log_msg = ' || l_result_num || '.';
@@ -607,6 +607,115 @@ declare
             || hmx_log.k_no_level || ' = ' || hmx_log.log_level_name(pi_log_level_num => hmx_log.k_no_level));
 
     end test_cache_message;
+
+    -- ---------------------------------------------------------------------------------------------
+    procedure test_set_max_log_rate
+    as
+        l_hmx_log_row   hmx_log_data%rowtype;
+        l_ini_log_rate  number;
+        l_prv_log_rate  number;
+        l_new_log_rate  number;
+        l_log_id        number; -- should be able to have decimals!
+
+        function lf_last_time (pi_time timestamp with time zone)
+        return number
+        as
+        begin
+            return extract(hour from pi_time) * 60 * 60
+                + extract(minute from pi_time) * 60
+                + extract(second from pi_time)
+            ;
+        end lf_last_time;
+
+    begin
+        dbms_session.sleep(1.5); -- avoid the tests just executed to mess-up the next tests, wait 1.5. second
+        l_test := t_test_desc('07.01','Set+Get Maximum log rate');
+        l_new_log_rate := 3;
+        l_expected_num := l_new_log_rate;
+        l_prv_log_rate := hmx_log.set_max_log_rate(pi_rate => l_new_log_rate);
+        l_ini_log_rate := l_prv_log_rate;
+        l_result_num  := hmx_log.get_max_log_rate;
+        check_pass_fail ($$plsql_line, l_test, l_expected_num, l_result_num);
+        -- -----------------------------------------------------------------------------------------
+        -- Verify max logging works when reaching the max log rate limit
+        dbms_session.sleep(1.5); -- avoid the tests just executed to mess-up the next tests, wait 1.5. second
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_normal);
+        l_test       := t_test_desc('07.02','Verify max records logged: too many');
+        l_test_title := l_test.title;
+        l_log_pkid := hmx_log.f_log_msg
+                        (pi_log_msg     => 'Start ' || l_test.id || ' - ' || l_test.title
+                        ,pi_log_level   => hmx_log.k_normal
+                        ,pi_log_type    => hmx_log.k_testing
+                        ,pi_log_scope   => hmx_log.k_tester
+                        ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                        ,pi_log_opt     => 0
+                        );
+        l_new_log_rate := 3;
+        l_prv_log_rate := hmx_log.set_max_log_rate(pi_rate => l_new_log_rate);
+        -- loop 5 times, but only three should be
+        for idx in 1 .. 5
+        loop
+             l_log_id := hmx_log.f_log_msg
+                            (pi_log_msg     => 'Test #' || idx || ' for ' || l_test.id || ' - ' || l_test.title
+                            ,pi_log_level   => hmx_log.k_normal
+                            ,pi_log_type    => hmx_log.k_testing
+                            ,pi_log_scope   => hmx_log.k_tester
+                            ,pi_log_tags    => 'LOOP #' || lpad(idx,3,'0')
+                            ,pi_log_opt     => 0
+                            );
+        end loop;
+        l_expected_num := l_log_pkid + l_new_log_rate;  -- only three shoudl have been logged
+        l_result_num   := hmx_log.get_last_log_pkid;
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_test.title := l_test_title || ': expected log return code';
+        check_pass_fail ($$plsql_line, l_test, l_expected_num, l_result_num);
+
+        l_test.title := l_test_title || ': ID returned';
+        check_pass_fail ($$plsql_line, l_test, hmx_log.k_skipped_too_many_logged, l_log_id);
+        -- -----------------------------------------------------------------------------------------
+        -- Verify max logging works when not reaching the max log rate limit
+        dbms_session.sleep(1.5); -- avoid the tests just executed to mess-up the next tests, wait 1.5. second
+        hmx_log.set_minimum_log_level(pi_log_level => hmx_log.k_normal);
+        l_test       := t_test_desc('07.03','Verify max records logged: not too many');
+        l_test_title := l_test.title;
+        l_log_pkid := hmx_log.f_log_msg
+                        (pi_log_msg     => 'Start ' || l_test.id || ' - ' || l_test.title
+                        ,pi_log_level   => hmx_log.k_normal
+                        ,pi_log_type    => hmx_log.k_testing
+                        ,pi_log_scope   => hmx_log.k_tester
+                        ,pi_log_tags    => 'HMX-dev;test' || l_test.id
+                        ,pi_log_opt     => 0
+                        );
+        l_new_log_rate := 3;
+        l_prv_log_rate := hmx_log.set_max_log_rate(pi_rate => l_new_log_rate);
+        -- loop 5 times, but only three should be
+        for idx in 1 .. 5
+        loop
+             l_log_id := hmx_log.f_log_msg
+                            (pi_log_msg     => 'Test #' || idx || ' for ' || l_test.id || ' - ' || l_test.title
+                            ,pi_log_level   => hmx_log.k_normal
+                            ,pi_log_type    => hmx_log.k_testing
+                            ,pi_log_scope   => hmx_log.k_tester
+                            ,pi_log_tags    => 'LOOP #' || lpad(idx,3,'0')
+                            ,pi_log_opt     => 0
+                            );
+             dbms_session.sleep(0.34);  -- The smallest increment can be entered in hundredths of a second
+        end loop;
+        l_expected_num := l_log_pkid + 5;   -- all in the loop 5 times should have been logged
+        l_result_num   := hmx_log.get_last_log_pkid;
+        hmx_log.get_log_row(pio_hmx_log_row => l_hmx_log_row);
+        l_test.title := l_test_title || ': expected last log ID';
+        check_pass_fail ($$plsql_line, l_test, l_expected_num, l_result_num);
+
+        l_test.title := l_test_title || ': ID returned';
+        check_pass_fail ($$plsql_line, l_test, l_expected_num, l_log_id);
+
+        -- reset default for next tests
+        l_prv_log_rate := hmx_log.set_max_log_rate(pi_rate => l_ini_log_rate);
+        lprt('*A: Maximum logging rate for next tests applied in the logging restored: ' || l_ini_log_rate || '/second.');
+        dbms_session.sleep(1.5); -- avoid the tests just executed to mess-up the next tests, wait 1.5. second
+
+    end test_set_max_log_rate;
 
     -- ---------------------------------------------------------------------------------------------
 
@@ -637,6 +746,7 @@ begin
     test_set_tags;              -- #04
     test_log_connection;        -- #05
     test_cache_message;         -- #06
+    test_set_max_log_rate;      -- #07
 
     -- ---------------------------------------------------------------------------------------------
     lprt;
