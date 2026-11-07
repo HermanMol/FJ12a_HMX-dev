@@ -3,46 +3,44 @@ create or replace package body hmx_log
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package/script...
+.HMX_OBJECT_USAGE: This package holds the HMX processing logging functionality.
 
 .HMX_OBJECT_NOTES:
-    Package must be invoker rights (AUTHID CURRENT_USER)
-    ...
+Package must be invoker rights (AUTHID CURRENT_USER)
+See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 17:35:51 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:58:15 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
-** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
-
+** </hmx-annotations> */
 
     -- Private constants related to this package body, (s_ = SELF)
-    k_anonymous  constant varchar2(50) := lower('__anonymous_block');   -- default from Oracle documentation
-    k_pkg_init   constant varchar2(50) := upper('__pkg_init');          -- the Oracle defined name for the package initialization
-    k_1_second   constant number       := 1;
     k_nill       constant varchar2(4)  := 'Nill';                       -- to differ from the standard NULL
     k_lf         constant varchar2(1)  := hmx_utl.k_lf;                 -- ASCII Line Feed
     k_1q         constant varchar2(1)  := hmx_utl.k_1q;                 -- ASCII single quote
 
-    k_max_log_rate_default constant number := 50;
+    k_max_log_rate_default  constant number := 50;
 
     -- Private global variables
     -- Private stack to cache messages e.g. to log in case of an exception.
-    s_msg_stack         string_stack_type := string_stack_type();
+    s_msg_stack             string_stack_type := string_stack_type();
 
     -- to hold a unique value per session and which is that is logged with the message.
-    s_process_id        hmx_log_data.log_process%type;
+    s_process_id            hmx_log_data.log_process%type;
 
-    s_minimum_log_level number                              := fk_attention;
-    s_app_user          hmx_log_data.log_app_user%type := null;
-    s_tags              hmx_log_data.log_tags%type     := null;
+    s_minimum_log_level     number                         := k_attention;
+    s_app_user              hmx_log_data.log_app_user%type := null;
+    s_tags                  hmx_log_data.log_tags%type     := null;
 
     -- Private variables: keep track of the log rate per second, no more than ...
-    s_last_logtime      timestamp(9) with time zone;
-    s_cnt_msg_written   number(38,0) :=  0;
-    s_cnt_msg_skipped   number(38,0) :=  0;
-    s_max_log_rate      number(6,0)  := k_max_log_rate_default;
+    s_log_rate_start        timestamp with time zone;
+    s_cnt_msg_written       number(38,0) := 0;
+    s_max_log_rate          number(6,0)  := k_max_log_rate_default;
+
+    s_last_logtime          timestamp with time zone;
+    s_last_log_pkid_written hmx_log_data.log_pkid%type := 0;
 
 --    procedure debug_prt(pi_text in varchar2 := null) as begin dbms_output.put_line(nullif('*D: ' || pi_text, '*D: ') ); end debug_prt;
 
@@ -85,45 +83,6 @@ as
     function fk_script      return varchar2 deterministic is begin return k_script    ; end;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Public function returning the default name of a numeric log level
-    function log_level_name
-        (pi_log_level_num   in number)
-    return varchar2
-    deterministic
-    as
-    begin
-        return case pi_log_level_num
-                when k_no_level  then 'None'
-                when k_cache     then 'Cache'
-                when k_normal    then 'Normal'
-                when k_attention then 'Attention'
-                when k_warning   then 'Warning'
-                when k_error     then 'Error'
-                when k_severe    then 'Severe'
-                when k_critical  then 'Critical'
-                when k_force     then 'Forced'
-                else                  'Unknown'
-               end;
-    end log_level_name;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- TODO
-    procedure set_last_logtime
-    as
-    begin
-        s_last_logtime := systimestamp at time zone 'UTC';
-    end set_last_logtime;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- TODO
-    function get_last_logtime
-    return timestamp with time zone
-    as
-    begin
-        return s_last_logtime;
-    end get_last_logtime;
-
-    -- ---------------------------------------------------------------------------------------------
     -- Package private function to initialise the hmx_log_data record
     procedure bp_init_hmx_log_data_record
         (pio_hmx_log_rec in out hmx_log_data%rowtype
@@ -131,9 +90,9 @@ as
     as
     begin
         pio_hmx_log_rec := null;
-        pio_hmx_log_rec.log_type       := fk_logging;
-        pio_hmx_log_rec.log_level      := fk_no_level;
-        pio_hmx_log_rec.log_scope      := fk_developer;
+        pio_hmx_log_rec.log_type       := k_logging;
+        pio_hmx_log_rec.log_level      := k_no_level;
+        pio_hmx_log_rec.log_scope      := k_developer;
         pio_hmx_log_rec.log_tags       := null;
         pio_hmx_log_rec.log_msg        := null;
         pio_hmx_log_rec.log_time       := systimestamp at time zone 'UTC';
@@ -148,9 +107,10 @@ as
         pio_hmx_log_rec.log_org_owner  := $$plsql_unit_owner;
         pio_hmx_log_rec.log_org_object := $$plsql_unit;
         pio_hmx_log_rec.log_org_type   := null;
-        pio_hmx_log_rec.log_org_method := 'BP_INIT_hmx_log_DATA_RECORD';
+        pio_hmx_log_rec.log_org_method := 'BP_INIT_HMX_LOG_DATA_RECORD';
         pio_hmx_log_rec.log_org_line   := $$plsql_line;
         pio_hmx_log_rec.log_call_depth := 0;
+        pio_hmx_log_rec.log_app_user   := s_app_user;
     end bp_init_hmx_log_data_record;
 
     -- ---------------------------------------------------------------------------------------------
@@ -160,12 +120,12 @@ as
         )
     return number
     as
-        l_log_id  number;
     begin
         -- insert the logging into the hmx_log_DATA table
-        l_log_id := hmx_log_core.insert_hmx_log_data(pi_hmx_log_rec);
-        set_last_logtime; -- to control the maximum logging per second
-        return l_log_id;
+        s_last_log_pkid_written := hmx_log_core.insert_hmx_log_data(pi_hmx_log_rec);
+        s_last_logtime := current_timestamp;
+        s_cnt_msg_written := s_cnt_msg_written + 1;
+        return s_last_log_pkid_written;
     end bf_insert_hmx_log_data;
 
     -- ---------------------------------------------------------------------------------------------
@@ -198,22 +158,67 @@ as
     is
     begin
         bp_generate_process_id();
-        set_last_logtime;
         set_app_user;
-        s_minimum_log_level := fk_normal;
+        s_minimum_log_level := k_normal;
         s_max_log_rate      := k_max_log_rate_default;
     end bp_init_package;
 
     -- ---------------------------------------------------------------------------------------------
-    -- private function that returns the last issued hmx_log_data sequence
-    function bf_get_last_log_seq
-    return number
+    -- Internal function checking the amount of logging requests per second.
+    -- It must be less than the s_max_log_rate to avoid execessive logging e.g. in a tight loop.
+    function bf_logging_rate_ok
+    return boolean
     as
-        l_last_seq  number;
+        l_retval    boolean := false;
     begin
-        select max(log_pkid) into l_last_seq from hmx_log_data;
-        return nvl(l_last_seq,-1);
-    end bf_get_last_log_seq;
+        if s_log_rate_start is null
+        or current_timestamp >= s_log_rate_start + TO_DSINTERVAL('00 00:00:01')    -- one second
+        then
+            l_retval          := true;                  -- OK to log
+            s_cnt_msg_written := 0;                     -- reset counter
+            s_log_rate_start  := current_timestamp;     -- reset start of time frame
+        elsif s_cnt_msg_written <= (s_max_log_rate - 1) -- s_cnt_msg_written for first request starts with zero...
+        then
+            l_retval := true;   -- OK to log
+        else
+            -- Refuse: too many logging requests in 1 second
+            l_retval := false;
+        end if;
+        return l_retval;
+    end bf_logging_rate_ok;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the default name of a numeric log level.
+    -- When no number requested the current setting is returned.
+    function log_level_name
+        (pi_log_level_num   in number := get_minimum_log_level)
+    return varchar2
+    deterministic
+    as
+    begin
+        return case pi_log_level_num
+                when k_no_level  then 'None'
+                when k_cache     then 'Cache'
+                when k_normal    then 'Normal'
+                when k_attention then 'Attention'
+                when k_warning   then 'Warning'
+                when k_error     then 'Error'
+                when k_severe    then 'Severe'
+                when k_critical  then 'Critical'
+                when k_force     then 'Forced'
+                else                  'Unknown'
+               end;
+    end log_level_name;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the timestamp that the last record was written to the 
+    -- HMX_LOG_DATA table.
+    function get_last_logtime
+    return timestamp with time zone
+    as
+    begin
+        return s_last_logtime;
+    end get_last_logtime;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function get the log level active in this session
@@ -244,14 +249,24 @@ as
     end get_tags;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Set the logging tags
+    -- Set the whole new logging tags
     procedure set_tags
-    (pi_tags      in varchar2
-    )
+        (pi_tags      in varchar2
+        )
     as
     begin
         s_tags := pi_tags;
     end set_tags;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Add tags to possibly existing logging tags, separated by a semicolon
+    procedure add_tags
+        (pi_tags      in varchar2
+        )
+    as
+    begin
+        s_tags := nullif(s_tags || ';', ';') || pi_tags;
+    end add_tags;
 
     -- ---------------------------------------------------------------------------------------------
     -- Get the app_user
@@ -282,10 +297,10 @@ as
         else
             l_client_info := sys_context('USERENV','CLIENT_INFO');
             -- SEE, DEPENDS ON some log-in function  dbms_application_info.set_client_info (client_info => !!
-            if  regexp_count(l_client_info,'^Logged in as: [0-9]{3,10}',1,'c') <> 0
+            if  regexp_count(l_client_info,'^Logged in as: [[:print:]]{3,10}',1,'c') <> 0
             and pi_from_sys = true
             then
-                s_app_user := regexp_substr(l_client_info,'^Logged in as: ([0-9]{3,10})',1,1,'c',1);
+                s_app_user := regexp_substr(l_client_info,'^Logged in as: ([[:print:]]{3,10})',1,1,'c',1);
             else
                 s_app_user := nvl(pi_app_user, user);
             end if;
@@ -304,26 +319,29 @@ as
 
     -- ---------------------------------------------------------------------------------------------
     -- Set the maximum logged messages per second
-    -- When the process exceeds this number, ALL logging is suppressed
-    -- The returned number is the old value.
-    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an
-    -- invalid value is specified the default messages / second is used.
+    -- When the process exceeds this number withinh 1 second , ALL logging is suppressed until
+    -- the time frame is done.
+    -- The value returned from this function is the old value.
+    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an invalid value is 
+    -- specified the default messages / second is used. The pi_rate is "FLOOR"-ed.
     function set_max_log_rate
         (pi_rate  in number := null)
     return number
     as
         l_old_rate  number;
+        l_new_rate  number;
     begin
+        l_new_rate := coalesce(floor(pi_rate),k_max_log_rate_default);
         l_old_rate := s_max_log_rate;
-        if pi_rate between 1 and 1000
+        if l_new_rate between 1 and 1000
         then
-            s_max_log_rate := pi_rate;
+            s_max_log_rate := l_new_rate;
         else
             s_max_log_rate := k_max_log_rate_default;
         end if;
-        -- reset settings
-        set_last_logtime;
+        -- reset counter and start of the time frame
         s_cnt_msg_written := 0;
+        s_log_rate_start  := current_timestamp;
 
         return l_old_rate;
     end set_max_log_rate;
@@ -359,76 +377,63 @@ as
     end set_process_id;
 
     -- ---------------------------------------------------------------------------------------------
-    -- public
-    -- Log the message
-    -- All values SUBSTR-ed - better safe than sorry
-    -- - pi_type  = The type of message. Unrestricted but these are the predefined values:
-    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
-    -- - pi_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
-    --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
-    --              For types TRACE and DEBUG a negative value indicates the execution level at
-    --              which the message was issued. Unrestricted.
-    -- - pi_scope = The scope of the message, Unrestricted but these are the predefined values:
-    --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
-    -- - pi_tags  = Free format for tags for logical grouping of messages, e.g. a test case
-    --              reference or a REST message UID.
-    -- - pi_log_opt: Logging options
-    --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
-    --    <>0     | *1    |    n/a     |    n/a          | log message | yes        | yes
-    --    =0      | n/a   |    false   |    false        | log message | no         | no
-    --    =0      | n/a   |    false   |    true         | log message | no         | yes
-    --    =0      | n/a   |    true    |    false        | log message | yes        | no
-    --    =0      | n/a   |    true    |    true         | log message | yes        | yes
-    --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
-    --       this should not be used when called from another package. TYPE will be set to LOGGING
-    procedure log_msg
+    -- Log the message and return the created primary key.
+    -- Mainly used for testing, being able to check the added log record.
+    -- For explanation see the comments for procedure LOG_MSG.
+    function f_log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         )
+    return number   -- must be able to have decimals: See k_skipped_too_many_logged and k_skipped_too_low_log_level
     is
         l_in_exception_handling varchar2(1) := hmx_utl.k_no;
         l_called_from_details   hmx_call_stack.t_called_from_info_rec;
         l_hmx_log_rec           hmx_log_data%rowtype;
         l_log_id                number;
-        l_now                   timestamp(9) with time zone;
-        l_since                 number(11,2);
-        l_logging_msg           hmx_log_data.log_msg%type := null;
         l_log_opt               pls_integer;  -- initially pi_log_opt but might be changed.
-        l_minimum_level         varchar2(10);
-        l_log_type              hmx_log_data.log_type%type := null;
-        l_txt_cached_msg        varchar2(4000) := null;
+-- TODO what for?        l_logging_msg           hmx_log_data.log_msg%type := null;
 
     begin
 
+        l_log_opt := pi_log_opt;
+
+        -- If cache message is requested, no matter what the situation always cache the message in
+        -- the internal string stack of max 50 varchar2(4000) entries.
+        if bitand(l_log_opt,k_add_cached_msg) = k_add_cached_msg
+        or pi_log_level = k_cache
+        then
+            cache_msg(hmx_utl.f_max_chars(pi_log_msg,4000) );
+        end if;
+
+        if pi_log_level < s_minimum_log_level
+        then
+            return k_skipped_too_low_log_level; -- message not logged, level < current minimum log level
+        end if;
+
+        if not bf_logging_rate_ok 
+        then
+            return k_skipped_too_many_logged; -- logging skipped, number of logged messages > maximum log rate / second
+        end if;
+
         bp_init_hmx_log_data_record(l_hmx_log_rec);
 
-        if nvl(sqlcode,0) <> 0  -- HM20261103
+        if nvl(sqlcode,0) <> 0
         then
             l_in_exception_handling := hmx_utl.k_yes;
         end if;
 
-        -- prevent a nasty looping :-) when called from gdb_tools.hmx_log_ctx_api.log_context_values
-        -- only needed during development of this perticular package
-        -- *skip     if  not (   pi_type = fk_logging
-        -- *skip             and pi_tags = 'LOG_CONTEXT_VALUES'
-        -- *skip             )
-        -- *skip     then
-        -- *skip       gdb_tools.hmx_log_ctx_api.log_context_values(pi_text => 'LOG_MSG');
-        -- *skip     end if;
-
-        l_log_opt := pi_log_opt;    -- TODO
-
-        l_called_from_details := hmx_call_stack.get_called_from_details(i_skip_units => $$plsql_unit);
-        l_hmx_log_rec.log_msg             := pi_log_msg;
-        l_hmx_log_rec.log_type            := pi_log_type;
+        l_called_from_details := hmx_call_stack.get_called_from_details(pi_skip_units => nullif(pi_skip_units || ',',',') || $$plsql_unit);
+        l_hmx_log_rec.log_msg             := hmx_utl.f_max_chars(pi_log_msg,4000);
+        l_hmx_log_rec.log_type            := hmx_utl.f_max_chars(pi_log_type,8,null,null);
         l_hmx_log_rec.log_level           := pi_log_level;
-        l_hmx_log_rec.log_scope           := pi_log_scope;
-        l_hmx_log_rec.log_tags            := pi_log_tags;
+        l_hmx_log_rec.log_scope           := hmx_utl.f_max_chars(pi_log_scope,10,null,null);
+        l_hmx_log_rec.log_tags            := trim(both ';' from hmx_utl.f_max_chars(s_tags, 200, ';'||pi_log_tags) );
         l_hmx_log_rec.log_org_owner       := l_called_from_details.object_owner;
         l_hmx_log_rec.log_org_object      := l_called_from_details.object_name;
         l_hmx_log_rec.log_org_method      := l_called_from_details.object_method;
@@ -451,7 +456,7 @@ as
 
         if l_in_exception_handling = hmx_utl.k_yes
         then
-            l_hmx_log_rec.log_sqlcode := nvl(sqlcode,0);    -- HM20261103
+            l_hmx_log_rec.log_sqlcode := nvl(sqlcode,0);
             l_hmx_log_rec.log_sqlerrm := substr(sqlerrm,1,512);
             if bitand(l_log_opt,k_log_error_backtrace) = 0
             then
@@ -496,8 +501,18 @@ as
                 where oracle_maintained = 'N'
                 and owner       = l_hmx_log_rec.log_org_owner
                 and object_name = l_hmx_log_rec.log_org_object
-                and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION')
-                order by object_type desc
+                and object_type in ('PACKAGE','PACKAGE BODY', 'TRIGGER', 'PROCEDURE', 'FUNCTION', 'TYPE', 'TYPE BODY')
+                order by case object_type 
+                            when 'PACKAGE BODY' then 1 -- default, most likely order
+                            when 'PROCEDURE'    then 2
+                            when 'FUNCTION'     then 3
+                            when 'TRIGGER'      then 4
+                            when 'TYPE BODY'    then 5
+                            when 'PACKAGE'      then 6
+                            when 'TYPE'         then 7
+                            else 9
+                        end asc
+                    ,object_type
                 fetch first 1 rows only;
             exception
                 when no_data_found
@@ -508,13 +523,68 @@ as
         -- insert the logging into the hmx_log_DATA table
         l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
 
-        if l_logging_msg is not null    -- TODO what is this for
-        then
-            l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
-            l_hmx_log_rec.log_type := fk_logging;
-            l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
-        end if;
+-- ??        if l_logging_msg is not null    -- TODO what is this for??
+-- ??        then
+-- ??            l_hmx_log_rec.log_msg  := l_logging_msg || ' (after log_pkid =' || to_char(l_log_id) || ')';
+-- ??            l_hmx_log_rec.log_type := k_logging;
+-- ??            l_log_id := bf_insert_hmx_log_data(l_hmx_log_rec);
+-- ??        end if;
 
+        return l_log_id;
+    end f_log_msg;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure used to log a message, passing all actual processing to the f_log_msg function.
+    -- All character values will be SUBSTR-ed to their max allowed lenght.
+    -- - pi_log_type  = The type of message. Unrestricted but these are the predefined values:
+    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
+    -- - pi_log_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
+    --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
+    --              For types TRACE and DEBUG a negative value indicates the execution level at
+    --              which the message was issued. Unrestricted.
+    -- - pi_log_scope = The scope of the message, Unrestricted but these are the predefined values:
+    --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
+    -- - pi_log_tags  = Free format for tags for logical grouping of messages, e.g. a test case
+    --              reference or a REST message UID.
+    -- - pi_log_opt: Logging options
+    --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
+    --    <>0     | *1    |    n/a     |    n/a          | log message | yes        | yes
+    --    =0      | n/a   |    false   |    false        | log message | no         | no
+    --    =0      | n/a   |    false   |    true         | log message | no         | yes
+    --    =0      | n/a   |    true    |    false        | log message | yes        | no
+    --    =0      | n/a   |    true    |    true         | log message | yes        | yes
+    --  - pi_object_type = (optional) the object where called from. Might be needed to register
+    --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
+    --              will work. If no object type can be registered with the log message, then
+    --              default "PACKAGE BODY" is probably the best guess.
+    -- - pi_skip_units = the comma-separated list of unit names that should be skipped when trying
+    --              to find the calling unit in the call stack. This package HMX_LOG is skipped
+    --              by default.
+    --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
+    --       this should not be used when called from another package. TYPE will be set to LOGGING
+    procedure log_msg
+        (pi_log_msg     in varchar2
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
+        ,pi_log_tags    in varchar2 := null
+        ,pi_log_opt     in number   := 0
+        ,pi_object_type in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
+        )
+    as
+        l_log_id number;
+    begin
+        l_log_id := f_log_msg
+            (pi_log_msg     => pi_log_msg
+            ,pi_log_level   => pi_log_level
+            ,pi_log_type    => pi_log_type
+            ,pi_log_scope   => pi_log_scope
+            ,pi_log_tags    => pi_log_tags
+            ,pi_log_opt     => pi_log_opt
+            ,pi_object_type => pi_object_type
+            ,pi_skip_units  => pi_skip_units
+            );
     end log_msg;
 
     -- ---------------------------------------------------------------------------------------------
@@ -527,7 +597,9 @@ as
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to add a message to the message stack for possible later print
-    procedure cache_msg (pi_log_msg in varchar2)
+    procedure cache_msg 
+        (pi_log_msg in varchar2
+        )
     as
     begin
         s_msg_stack.push(pi_log_msg);
@@ -636,9 +708,9 @@ as
             then
                 log_msg
                     (pi_log_msg   => '*E While executing dynamic SQL: ' || replace(nvl(l_sql,k_nill),k_lf,null)
-                    ,pi_log_type  => fk_logging
-                    ,pi_log_level => fk_error
-                    ,pi_log_scope => fk_developer
+                    ,pi_log_type  => k_logging
+                    ,pi_log_level => k_error
+                    ,pi_log_scope => k_developer
                     ,pi_log_opt   => k_log_call_stack + k_log_error_backtrace + k_force_logging
                     ,pi_log_tags  => 'APEX_ERROR'
                     );
@@ -738,7 +810,7 @@ as
             -- APEX substitution variables
             begin
                 l_text := l_text
-                    || k_lf || 'APEX-valiables:'
+                    || k_lf || 'APEX-variables:'
                     || lf_get_apex_values('APEX$ROW_NUM')
                     || lf_get_apex_values('APEX$ROW_SELECTOR')
                     || lf_get_apex_values('APEX$ROW_STATUS')
@@ -795,14 +867,14 @@ as
                     l_text := l_text || k_lf || '*E: Error while retrieving APEX info: ' || sqlerrm();
             end;
         else
-            l_text := l_text || k_lf || 'APEX-valiables: No APEX data available.';
+            l_text := l_text || k_lf || 'APEX-variables: No APEX data available.';
         end if;
 
         log_msg
             (pi_log_msg   => l_text
-            ,pi_log_type  => fk_logging
-            ,pi_log_level => fk_normal
-            ,pi_log_scope => fk_developer
+            ,pi_log_type  => k_logging
+            ,pi_log_level => k_normal
+            ,pi_log_scope => k_developer
             ,pi_log_opt   => 0
             ,pi_log_tags  => 'LOG_CONNECTION'
             );
@@ -877,6 +949,49 @@ as
                 ,pi_object_type => k_script
                 );
     end log_run_script;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Get the full row from HMX_LOG_DATA based on the passed pkid
+    -- If the requested log_pkid is null, an error message is returned, starting with "#ERROR# %".
+    -- If the row is not found, the pkid is set to NULL and an error message is returned, starting with "#ERROR# %".
+    -- If the any other error occurred, the pkid is set to SQLCODE and an error message is returned, starting with "#ERROR# %" and containing the SQLERRM.
+    -- This procedure is probably mainly used for testing.
+    procedure get_log_row
+        (pio_hmx_log_row in out hmx_log_data%rowtype
+        )
+    as
+    begin
+        if pio_hmx_log_row.log_pkid is null
+        then
+            pio_hmx_log_row.LOG_MSG := '#ERROR# MISSING LOG_PKID IN '|| $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+        else
+            <<get_log_record>>
+            begin
+                select *
+                into pio_hmx_log_row
+                from hmx_log_data
+                where log_pkid = pio_hmx_log_row.log_pkid;
+            exception
+                when no_data_found
+                then
+                    pio_hmx_log_row.log_msg  := '#ERROR# LOG_PKID ' || to_char(pio_hmx_log_row.log_pkid ) || ' NOT FOUND IN ' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+                    pio_hmx_log_row.log_pkid := null;
+                when others
+                then
+                    pio_hmx_log_row.log_msg  := '#ERROR# ' || sqlerrm || ' IN ' || $$PLSQL_UNIT_OWNER || '.' || $$PLSQL_UNIT ||'GET_LOG_ROW AT UNIT_LINE ' || $$PLSQL_LINE || '.';
+                    pio_hmx_log_row.log_pkid := sqlcode;
+            end get_log_record;
+        end if;
+    end get_log_row;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the last log table HMX_LOG_DATA.LOG_PKID issued in this session
+    function get_last_log_pkid
+    return number
+    as
+    begin
+        return s_last_log_pkid_written;
+    end get_last_log_pkid;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor

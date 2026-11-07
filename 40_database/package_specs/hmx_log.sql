@@ -4,18 +4,18 @@ AUTHID CURRENT_USER
 as
 /* <hmx-annotations>
 
-.HMX_OBJECT_USAGE: This package/script...
+.HMX_OBJECT_USAGE: This package holds the HMX processing logging functionality.
 
 .HMX_OBJECT_NOTES:
 Package must be invoker rights (AUTHID CURRENT_USER)
-...
+See schema trigger HMX_DDL_LOGGING for DDL-logging.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 17:01:30 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:21:36 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
-** </hmx-annotations> */-- package must be AUTHID CURRENT_USER
+** </hmx-annotations> */
 
     -- Constants related to this package
     -- For pi_log_opt to control additional logging using bitwise value (BITAND)
@@ -25,8 +25,8 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     k_force_logging       constant number(1,0) := 8;
 
     -- Public constants.
+    
     -- Log message type, predefined constants
-    -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
     k_info        constant varchar2(8) := 'INFO';  -- default
     k_tech        constant varchar2(8) := 'TECH';
     k_func        constant varchar2(8) := 'FUNC';
@@ -37,6 +37,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     k_auditing    constant varchar2(8) := 'AUDIT';
     k_security    constant varchar2(8) := 'SECURITY';
     k_logging     constant varchar2(8) := 'LOGGING';   -- internally hmx_log usage
+    
     -- Log message level, predefined constants
     -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
     -- call stack level the log message was issued.
@@ -49,8 +50,8 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     k_severe      constant number(2,0) := 30; -- more serious error that just an error
     k_critical    constant number(2,0) := 35; -- unrecoverable, abort processing
     k_force       constant number(2,0) := 99; -- just force log without any other reason
+
     -- Log message scope, predefined constants
-    -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
     k_anyone      constant varchar2 (10) := 'ANYONE';  -- default
     k_developer   constant varchar2 (10) := 'DEVELOPER';
     k_tester      constant varchar2 (10) := 'TESTER';
@@ -62,9 +63,13 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     -- Log running a script: object_type = k_script
     k_script      constant varchar2 (06) := 'SCRIPT';
 
+    -- Returned from f_log_msg when logging was skipped, because of why.
+    -- Using decimals because these cannot be primary key values of the HMX_LOG_DATA rows.
+    k_skipped_too_low_log_level  constant number := 0.1; -- message not logged, level < current minimum log level
+    k_skipped_too_many_logged    constant number := 0.2; -- logging skipped, number of logged messages > maximum log rate
+
     -- Public constant functions so they can be used in queries.
     -- Log message type, predefined constants
-    -- INFO/TECH/FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY
     function fk_info        return varchar2 deterministic;
     function fk_tech        return varchar2 deterministic;
     function fk_func        return varchar2 deterministic;
@@ -75,6 +80,7 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     function fk_auditing    return varchar2 deterministic;
     function fk_security    return varchar2 deterministic;
     function fk_logging     return varchar2 deterministic;
+
     -- Log message level, predefined constants
     -- For Message Types TRACE and DEBUG the logged level will be negative and indicate at which the
     -- call stack level the log message was issued.
@@ -87,8 +93,8 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     function fk_severe      return number   deterministic;
     function fk_critical    return number   deterministic;
     function fk_force       return number   deterministic;
+
     -- Log message scope, predefined constants
-    -- DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER
     function fk_anyone      return varchar2 deterministic;
     function fk_developer   return varchar2 deterministic;
     function fk_tester      return varchar2 deterministic;
@@ -99,13 +105,6 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 
     -- Log running a script: object_type = k_script
     function fk_script      return varchar2 deterministic;
-
-    -- ---------------------------------------------------------------------------------------------
-    -- Public function returning the default name of a numeric log level
-    function log_level_name
-        (pi_log_level_num   in number)
-    return varchar2
-    deterministic;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function get the log level active in this session
@@ -119,13 +118,28 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         );
 
     -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the default name of a numeric log level.
+    -- When no number requested the current setting is returned.
+    function log_level_name
+        (pi_log_level_num   in number := get_minimum_log_level
+        )
+    return varchar2
+    deterministic;
+
+    -- ---------------------------------------------------------------------------------------------
     -- Get the tags
     function get_tags
     return varchar2;
 
     -- ---------------------------------------------------------------------------------------------
-    -- Set the logging tags
+    -- Set the whole new logging tags
     procedure set_tags
+        (pi_tags  in varchar2
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Add tags to possibly existing logging tags, separated by a semicolon
+    procedure add_tags
         (pi_tags  in varchar2
         );
 
@@ -145,17 +159,32 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         );
 
     -- ---------------------------------------------------------------------------------------------
-    -- Log the message
-    -- All values SUBSTR-ed - better safe than sorry
-    -- - pi_level = The severity level of the message: (default) 0=not_specified, 5-cache, 10=info,
+    -- Log the message and return the created primary key.
+    -- Mainly used for testing, being able to check the added log record.
+    -- For explanation see the comments for procedure LOG_MSG.
+    function f_log_msg
+        (pi_log_msg     in varchar2
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
+        ,pi_log_tags    in varchar2 := null
+        ,pi_log_opt     in number   := 0
+        ,pi_object_type in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
+        )
+    return number;
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure used to log a message, passing all actual processing to the f_log_msg function.
+    -- All character values will be SUBSTR-ed to their max allowed lenght.
+    -- - pi_log_type  = The type of message. Unrestricted but these are the predefined values:
+    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
+    -- - pi_log_level = The severity level of the message: (default) 0=not_specified, 5=cache, 10=info,
     --              15=attention, 20=warning, 25=error, 30=severe, 35=critical
     --              For types TRACE and DEBUG a negative value indicates the execution level at
     --              which the message was issued. Unrestricted.
-    -- - pi_type  = The type of message. Unrestricted but these are the predefined values:
-    --              (default) INFO, TECH, FUNC, TRACE, DEVELOP, DEBUG, TESTING, AUDIT, SECURITY.
-    -- - pi_scope = The scope of the message, Unrestricted but these are the predefined values:
+    -- - pi_log_scope = The scope of the message, Unrestricted but these are the predefined values:
     --              DEVELOPER, TESTER, ADMIN, OPERATIONS, USER, KEYUSER and (default) ANYONE.
-    -- - pi_tags  = Free format for tags for logical grouping of messages, e.g. a test case
+    -- - pi_log_tags  = Free format for tags for logical grouping of messages, e.g. a test case
     --              reference or a REST message UID.
     -- - pi_log_opt: Logging options
     --    SQLCode | Force | Call_Stack | Error_Backtrace | Result      | Call_Stack | Error_Stack
@@ -164,16 +193,24 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     --    =0      | n/a   |    false   |    true         | log message | no         | yes
     --    =0      | n/a   |    true    |    false        | log message | yes        | no
     --    =0      | n/a   |    true    |    true         | log message | yes        | yes
+    --  - pi_object_type = (optional) the object where called from. Might be needed to register
+    --              with the logging so the SQL Developer SDEV_LINK* jump-to-object functionality
+    --              will work. If no object type can be registered with the log message, then
+    --              default "PACKAGE BODY" is probably the best guess.
+    -- - pi_skip_units = the comma-separated list of unit names that should be skipped when trying
+    --              to find the calling unit in the call stack. This package HMX_LOG is skipped
+    --              by default.
     --  *1 = if force=true then will log even when the error is in this hmx_log-package itself, so
-    --       this should not be used when called from another package.
+    --       this should not be used when called from another package. TYPE will be set to LOGGING
     procedure log_msg
         (pi_log_msg     in varchar2
-        ,pi_log_level   in number   := fk_no_level
-        ,pi_log_type    in varchar2 := fk_info
-        ,pi_log_scope   in varchar2 := fk_anyone
+        ,pi_log_level   in number   := k_no_level
+        ,pi_log_type    in varchar2 := k_info
+        ,pi_log_scope   in varchar2 := k_anyone
         ,pi_log_tags    in varchar2 := null
         ,pi_log_opt     in number   := 0
         ,pi_object_type in varchar2 := null
+        ,pi_skip_units  in varchar2 := null
         );
 
     -- ---------------------------------------------------------------------------------------------
@@ -184,12 +221,14 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 
     -- ---------------------------------------------------------------------------------------------
     -- Set the maximum logged messages per second
-    -- When the process exceeds this number, ALL logging is suppressed
-    -- The returned number is the old value.
-    -- Allowed values for p_rate: between 1 and 1000 (inclusive). When an
-    -- invalid value is specified the default 50 messages / second is used.
+    -- When the process exceeds this number withinh 1 second , ALL logging is suppressed until
+    -- the time frame is done.
+    -- The value returned from this function is the old value.
+    -- Allowed values for pi_rate: between 1 and 1000 (inclusive). When an invalid value is 
+    -- specified the default messages / second is used. The pi_rate is "FLOOR"-ed.
     function set_max_log_rate
-        (pi_rate  in number := null)
+        (pi_rate  in number := null
+        )
     return number;
 
     -- ---------------------------------------------------------------------------------------------
@@ -207,7 +246,8 @@ Package must be invoker rights (AUTHID CURRENT_USER)
     -- Example: testrun_2023-05-15T14:52:22
     -- The (internal) process_id is automatically set to some GUID when this package is instantiated.
     procedure set_process_id
-        (pi_process_id in varchar2);
+        (pi_process_id in varchar2
+        );
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to initialize the cached message stack.
@@ -215,7 +255,9 @@ Package must be invoker rights (AUTHID CURRENT_USER)
 
     -- ---------------------------------------------------------------------------------------------
     -- Procedure to add a message to the message stack for possible later print
-    procedure cache_msg (pi_log_msg in varchar2);
+    procedure cache_msg 
+        (pi_log_msg in varchar2
+        );
 
     -- ---------------------------------------------------------------------------------------------
     -- Function to retrieve all cached messages (separated by LF) in a string, maximum 32767 characters.
@@ -252,6 +294,27 @@ Package must be invoker rights (AUTHID CURRENT_USER)
         (pi_log_script  in varchar2
         ,pi_log_tags    in varchar2 := null
         );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Get the full row from HMX_LOG_DATA based on the passed pkid
+    -- If the requested log_pkid is null, an error message is returned, starting with "#ERROR# %".
+    -- If the row is not found, the pkid is set to NULL and an error message is returned, starting with "#ERROR# %".
+    -- If the any other error occurred, the pkid is set to SQLCODE and an error message is returned, starting with "#ERROR# %" and containing the SQLERRM.
+    -- This procedure is probably mainly used for testing.
+    procedure get_log_row
+        (pio_hmx_log_row in out hmx_log_data%rowtype
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the timestamp that the last record was written to the 
+    -- HMX_LOG_DATA table.
+    function get_last_logtime
+    return timestamp with time zone;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns the last HMX_LOG_DATA.LOG_PKID issued in this session
+    function get_last_log_pkid
+    return number;
 
 end hmx_log;
 /

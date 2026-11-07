@@ -11,7 +11,7 @@ is
     - hmx_call_stack.get_error_stack
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-29 15:26:00 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:57:39 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -36,22 +36,22 @@ is
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns all details where this was called from.
     -- Parameters:
-    -- - i_skip_units = optional comma-separated list of object-names to ignore when retrieving
+    -- - pi_skip_units = optional comma-separated list of object-names to ignore when retrieving
     --     the object that called this function. this to enable calling this function from a logging
     --     module and ignoring that logging module entry in the call stack.
     function get_called_from_details
-        (i_skip_units in varchar2 := null
+        (pi_skip_units in varchar2 := null
         )
     return t_called_from_info_rec;
 
     -- ---------------------------------------------------------------------------------------------
     -- Public function that returns the object name and line number where this was called from.
     -- Parameters:
-    -- - i_skip_units = optional comma-separated list of object-names to ignore when retrieving
+    -- - pi_skip_units = optional comma-separated list of object-names to ignore when retrieving
     --     the object that called this function. this to enable calling this function from a logging
     --     module and ignoring that logging module entry in the call stack.
     function get_called_from
-        (i_skip_units in varchar2 := null
+        (pi_skip_units in varchar2 := null
         )
     return varchar2;
 

@@ -9,3 +9,4 @@
 
 # hmx ignore all folders starting with notgit
 notgit_*/
+notgit*

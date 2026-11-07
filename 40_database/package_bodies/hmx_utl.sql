@@ -11,7 +11,7 @@ as
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators.sql
 
-.HMX_OBJECT_VERSION: 2026-10-28 12:23:49 +01:00
+.HMX_OBJECT_VERSION: 2026-11-06 15:28:53 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -309,7 +309,9 @@ as
     -- ---------------------------------------------------------------------------------------------
     -- Function that removes ALL leading and trailing whitespace (tab, cr, lf, space...)
     -- Also available as a SQL Operator TRIMWS which can be used in a SQL query (only!)
-    function trimws (pi_string in varchar2)
+    function trimws 
+        (pi_string in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -347,7 +349,8 @@ as
     -- Public function returning a string "Yes" or "No" depending on the input.
     -- If not "Yes" or "No", then "???" is returned.
     function f_yes_no
-        (pi_val  in varchar2)
+        (pi_val  in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -360,7 +363,8 @@ as
     end f_yes_no;
     -- overload for numeric boolean
     function f_yes_no
-        (pi_val  in pls_integer)
+        (pi_val  in pls_integer
+        )
     return varchar2
     deterministic
     as
@@ -376,7 +380,8 @@ as
     -- Public function returning a string "True" or "False" depending on the input.
     -- If not "True" or "False", then "???" is returned.
     function f_true_false
-        (pi_val  in varchar2)
+        (pi_val  in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -389,7 +394,8 @@ as
     end f_true_false;
     -- overload for numeric boolean
     function f_true_false
-        (pi_val  in pls_integer)
+        (pi_val  in pls_integer
+        )
     return varchar2
     deterministic
     as
@@ -405,7 +411,8 @@ as
     -- Public function returning a string "Pass" or "Fail" depending on the input.
     -- If not "Pass" or "Fail", then "???" is returned.
     function f_pass_fail
-        (pi_val  in varchar2)
+        (pi_val  in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -418,7 +425,8 @@ as
     end f_pass_fail;
     -- overload for numeric boolean
     function f_pass_fail
-        (pi_val  in pls_integer)
+        (pi_val  in pls_integer
+        )
     return varchar2
     deterministic
     as
@@ -434,7 +442,8 @@ as
     -- Public function returning a string "OK" or "Not OK" depending on the input.
     -- If not "OK" or "Not OK", then "???" is returned.
     function f_ok_not_ok
-        (pi_val  in varchar2)
+        (pi_val  in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -450,7 +459,8 @@ as
     -- Public function returning a string "Success" or "Failed" depending on the input.
     -- If not "Success" or "Failed", then "???" is returned.
     function f_success_failed
-        (pi_val  in varchar2)
+        (pi_val  in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -467,7 +477,8 @@ as
     -- If the passed pi_text is null, also NULL is returned.
     -- Because single quotes have a special function in Oracle SQL.
     function f_q1q
-        (pi_text in varchar2)
+        (pi_text in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -484,7 +495,8 @@ as
     -- If the passed pi_text is null, also NULL is returned.
     -- Because double quotes have a special function in Oracle SQL.
     function f_q2q
-        (pi_text in varchar2)
+        (pi_text in varchar2
+        )
     return varchar2
     deterministic
     as
@@ -496,14 +508,56 @@ as
         return k_2q || pi_text || k_2q;
     end f_q2q;
 
+    -- -----------------------------------------------------------------------------------------------
+    -- Public function returning a string of a max size.
+    -- Parameters:
+    -- - pi_base_chars = the base characters
+    -- - pi_max        = maximum number of characters returned optionally after a not-NULL value of
+    --                   pi_add_chars was concattenated. Default max = 32767
+    --                   If pi_max < 0 then, the substring is taken starting at the end of the 
+    --                   concattenation and the ellipsis is put at the begin.
+    -- - pi_add_chars  = optional characters to be concattenated to pi_base_chars. NO space is 
+    --                   inserted when concattenation is done. Also NO trim of white spaces.
+    --                   Consider using the TRIMWS function.
+    -- - pi_ellipsis   = optional characters places at the end of the returned string if the total
+    --                   length would overflow (exceed the pi_max).
+    --                   pi_ellipsis is limited to max 10 characters.
+    function f_max_chars
+        (pi_base_chars  in varchar2
+        ,pi_max         in number   := 32767
+        ,pi_add_chars   in varchar2 := null
+        ,pi_ellipsis    in varchar2 := hmx_utl.k_ellipsis
+        )
+    return varchar2
+    deterministic
+    as
+        k_max_chars     constant number         := least(abs(pi_max), 32767);
+        k_ellipsis      constant varchar2(10)   := substr(pi_ellipsis,1,10);
+        k_ellipsis_size constant number         := nvl(length(k_ellipsis),0);
+        l_retval        varchar2(32767 char);
+    begin
+        if length(pi_base_chars || pi_add_chars) > k_max_chars
+        then
+            if pi_max > 0
+            then
+                -- from the begin
+                l_retval := substr(pi_base_chars || pi_add_chars,1,k_max_chars - k_ellipsis_size) || k_ellipsis;
+            elsif pi_max < 0
+            then
+                l_retval := k_ellipsis || substr(pi_base_chars || pi_add_chars, -1 * (k_max_chars - k_ellipsis_size) );
+            else
+                l_retval := null;
+            end if;
+        else
+            l_retval := pi_base_chars || pi_add_chars;
+        end if;    
+        return l_retval;
+    end f_max_chars;
+
 -- -------------------------------------------------------------------------------------------------
 -- package constructor
 begin
   null;
---  dbms_output.enable(null);
---  dbms_output.put_line('*X: ' || $$PLSQL_UNIT || '.CONSTRUCTOR#1:'
-
 end hmx_utl;
 /
-
 prompt *I: ScriptEOF hmx_utl.sql
