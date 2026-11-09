@@ -9,7 +9,7 @@ as
     - Package requires invoker rights (AUTHID CURRENT_USER)
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-10-21 14:11:32 +02:00
+.HMX_OBJECT_VERSION: 2026-11-09 17:44:07 +02:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -137,7 +137,7 @@ as
     as
         l_appctxtab   dbms_session.appctxtabtyp;
         l_size        number;
-        l_retval      hmx_types.t_bool := hmx_utl.k_false;
+        l_retval      hmx_types.t_bool := hmx_utl.k_bfalse;
     begin
         dbms_session.list_context 
             (list  => l_appctxtab    -- out
@@ -150,10 +150,10 @@ as
             loop
                 if upper(pi_namespace) = upper(l_appctxtab(idx).namespace)
                 then
-                    l_retval := hmx_utl.k_false;
+                    l_retval := hmx_utl.k_btrue;
                     exit process_context_list;
                 end if;
-            end loop process_loop_context_list;
+            end loop process_context_list;
         end if;
         return l_retval;
     end context_exists;

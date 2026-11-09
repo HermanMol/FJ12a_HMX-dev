@@ -1,0 +1,42 @@
+saveOutputs: false
+cells:
+  - kind: 2
+    value: "-- SQLcl notebook \r
+
+      select *\r
+
+      from HMX_LOG_DATA\r
+
+      order by log_pkid desc"
+    languageId: oracle-sql
+  - kind: 1
+    value: "# report the logging\r
+
+      but in sqldev de sdev_link_* does not yet work :-(\r
+
+      \    "
+    languageId: markdown
+  - kind: 2
+    value: "select logdata.*\r
+
+      \    ,logdata.log_org_owner                      as sdev_link_owner\r
+
+      \    ,logdata.log_org_object                     as sdev_link_name\r
+
+      \    ,nvl(logdata.log_org_type,'PACKAGE BODY')   as sdev_link_type\r
+
+      \    ,logdata.log_org_line                       as sdev_link_line\r
+
+      from hmx_log_all_nice logdata\r
+
+      order by logdata.log_pkid desc"
+    languageId: oracle-sql
+  - kind: 2
+    value: "/*\r
+
+      SQLcl notebook\r
+
+      wat wil ik hiermee\r
+
+      */"
+    languageId: oracle-sql
