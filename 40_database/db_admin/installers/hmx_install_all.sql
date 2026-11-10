@@ -31,6 +31,8 @@ prompt -------------------------------------------------------------------------
 @@..\..\package_bodies\hmx_annotations.sql
 
 @@..\..\triggers\hmx_ddl_logging.sql
+-- make shure the DDL-logging is not operational - yet.
+@@..\..\triggers\hmx_ddl_trigger_disable.sql
 
 @@..\..\views\hmx_ddl_log_data_version.sql
 @@..\..\views\hmx_sys_context_userenv.sql
@@ -43,9 +45,6 @@ prompt -------------------------------------------------------------------------
 @@..\..\package_specs\hmx_call_stack_tests.sql
 @@..\..\package_bodies\hmx_call_stack_tests.sql
 
--- only ENABLE the DDL-trigger AFTER ALL DDL-logging related objects have been created!
-@@..\..\triggers\hmx_ddl_trigger_enable.sql
-
 @@..\..\object_grants\hmx_ddl_log_data.sql
 
 @hmx_report_invalid_all
@@ -53,6 +52,12 @@ prompt -------------------------------------------------------------------------
 @hmx_recompile_invalid_all
 
 @hmx_report_invalid_all
+
+-- ENABLE the DDL-trigger AFTER ALL DDL-logging related objects have been created!
+@@..\..\triggers\hmx_ddl_trigger_enable.sql
+
+-- Install the Unit Test modules
+@@hmx_install_ut_modules.sql
 
 begin
     hmx_log.log_msg(pi_log_msg=>'All HMX-objects installed script using hmx_install_all.sql.',pi_log_tags=>'INSTALL');
