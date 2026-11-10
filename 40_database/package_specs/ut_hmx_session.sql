@@ -1,6 +1,20 @@
 create or replace package ut_hmx_session
 is
--- Created using copilot 2026-11-09 16:56:07
+/* <hmx-annotations>
+
+.HMX_OBJECT_USAGE: Unit Test HMX_SESSION
+
+.HMX_OBJECT_NOTES:
+    Created using copilot 2026-11-09 16:56:07 and some modifications
+
+.HMX_DEVELOPER_NOTES:
+    - See HMX General Developer Notes
+
+.HMX_OBJECT_VERSION: 2026-11-10 10:39:55 +01:00
+.HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
+.HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
+
+** </hmx-annotations> */
 
     -- %suite(HMX_SESSION)
 
