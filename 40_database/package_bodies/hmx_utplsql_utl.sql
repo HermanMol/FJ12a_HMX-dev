@@ -8,7 +8,7 @@ as
     - For utPLSQL version v.3.2.3
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-10 17:33:15 +01:00
+.HMX_OBJECT_VERSION: 2026-11-11 08:34:13 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -126,6 +126,8 @@ as
         )
     as
         l_object_id number := 0;
+        -- To avoid duplicate test procedures give them a simple sequence number.
+        -- Not the Oracle subprogram_id since that may change when a new method was added to the package.
         l_subpgmnr  number := 0;
     begin
 
@@ -146,7 +148,7 @@ as
         prt('create or replace package ut_' || lower(pi_package_name) || '_02');
         prt('as');
         prt;
-        prt('-- Generated using hmx_utlpsql.gen_test_package_spec on ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM') );
+        prt('-- Generated using hmx_utplsql_utl.gen_test_package_spec on ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM') );
         prt;
         prt('    --%suite(Test package ' || lower(sys_context('USERENV','CURRENT_SCHEMA')) || '.' || lower(pi_package_name) || ')');
         prt('    --%suitepath(all hmx tests)');
@@ -173,6 +175,22 @@ as
         prt('/');
         prt;
     end gen_test_package_spec;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Generate the base utPLSQL test package body in DBMS_OUTPUT for a given package.
+    -- Notes:
+    -- - In the generated package body using "--#" i.s.o. "--%" for the utPLSQL annotations
+    --
+    -- ATTENTION! The generated code must be reviewed:
+    -- - Search for question marks where non-obvious data types are used
+    -- - ... more ...?
+    procedure gen_test_package_body
+        (pi_package_name in varchar2
+        )
+    as
+    begin
+        prt('*A: TODO must be created');
+    end gen_test_package_body;
 
 end hmx_utplsql_utl;
 /
