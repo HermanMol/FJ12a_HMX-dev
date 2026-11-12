@@ -181,13 +181,13 @@ The annotation names used in HMX are:
 ## Testing HMX objects
 For most of the HMX objects and methods test scripts are available. 
 
-Example (deprecated):
+Example (_deprecated_):
 - package HMX_UTL
 - Test script: hmx_utl_pkg_tests.sql
 - Output is in a spoolfile.
 - Output includes the tested HMX-UTL version and other environment info.
 
-** New since 2026-11-10 **
+**New since 2026-11-10:**
 - Using [utPLSQL](https://www.utplsql.org/) v.3.2.3
 - On [github](https://github.com/utPLSQL)
 - Tool [SQLDeveloper](https://github.com/utPLSQL/utPLSQL-SQLDeveloper) v.2.0.1
