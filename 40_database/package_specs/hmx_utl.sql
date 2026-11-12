@@ -12,7 +12,7 @@ as
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators_opr.sql
 
-.HMX_OBJECT_VERSION: 2026-11-06 15:27:35 +01:00
+.HMX_OBJECT_VERSION: 2026-11-12 18:14:01 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -347,6 +347,20 @@ as
         ,pi_max         in number   := 32767
         ,pi_add_chars   in varchar2 := null
         ,pi_ellipsis    in varchar2 := hmx_utl.k_ellipsis
+        )
+    return varchar2
+    deterministic;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns a hex dump of the first 8000 characters of the input.
+    -- Non-printables are replaced by NCHR(183) = the middle dot.
+    -- Example: hmx_utl.hex_dump('PLS-00103: Encountered the symbol "?" when expec');
+    -- Returns:
+    --     0001: 50 4c 53 2d 30 30 31 30 33 3a 20 45 6e 63 6f 75 = PLS-00103: Encou
+    --     0017: 6e 74 65 72 65 64 20 74 68 65 20 73 79 6d 62 6f = ntered the symbo
+    --     0033: 6c 20 22 3f 22 20 77 68 65 6e 20 65 78 70 65 63 = l "?" when expec
+    function hex_dump
+        (pi_text in varchar2
         )
     return varchar2
     deterministic;

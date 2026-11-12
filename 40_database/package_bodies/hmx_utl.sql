@@ -7,11 +7,11 @@ as
 
 .HMX_OBJECT_NOTES: -
 
-.HMX_DEVELOPER_NOTES: 
+.HMX_DEVELOPER_NOTES:
     - See HMX General Developer Notes
     - Some functions are used in schema level operators. See hmx_operators.sql
 
-.HMX_OBJECT_VERSION: 2026-11-06 15:28:53 +01:00
+.HMX_OBJECT_VERSION: 2026-11-12 18:14:05 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -309,7 +309,7 @@ as
     -- ---------------------------------------------------------------------------------------------
     -- Function that removes ALL leading and trailing whitespace (tab, cr, lf, space...)
     -- Also available as a SQL Operator TRIMWS which can be used in a SQL query (only!)
-    function trimws 
+    function trimws
         (pi_string in varchar2
         )
     return varchar2
@@ -514,9 +514,9 @@ as
     -- - pi_base_chars = the base characters
     -- - pi_max        = maximum number of characters returned optionally after a not-NULL value of
     --                   pi_add_chars was concattenated. Default max = 32767
-    --                   If pi_max < 0 then, the substring is taken starting at the end of the 
+    --                   If pi_max < 0 then, the substring is taken starting at the end of the
     --                   concattenation and the ellipsis is put at the begin.
-    -- - pi_add_chars  = optional characters to be concattenated to pi_base_chars. NO space is 
+    -- - pi_add_chars  = optional characters to be concattenated to pi_base_chars. NO space is
     --                   inserted when concattenation is done. Also NO trim of white spaces.
     --                   Consider using the TRIMWS function.
     -- - pi_ellipsis   = optional characters places at the end of the returned string if the total
@@ -550,9 +550,57 @@ as
             end if;
         else
             l_retval := pi_base_chars || pi_add_chars;
-        end if;    
+        end if;
         return l_retval;
     end f_max_chars;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function that returns a hex dump of the first 8000 characters of the input.
+    -- Non-printables are replaced by NCHR(183) = the middle dot.
+    -- Example: hmx_utl.hex_dump('PLS-00103: Encountered the symbol "?" when expec');
+    -- Returns:
+    --     0001: 50 4c 53 2d 30 30 31 30 33 3a 20 45 6e 63 6f 75 = PLS-00103: Encou
+    --     0017: 6e 74 65 72 65 64 20 74 68 65 20 73 79 6d 62 6f = ntered the symbo
+    --     0033: 6c 20 22 3f 22 20 77 68 65 6e 20 65 78 70 65 63 = l "?" when expec
+    function hex_dump
+        (pi_text in varchar2
+        )
+    return varchar2
+    deterministic
+    as
+        l_output    varchar2(32767);
+        l_text      varchar2(8000);
+        idx         number;
+    begin
+        if pi_text is null
+        then
+            return to_char(null);
+        end if;
+
+        l_text := substr(pi_text,1,8000);
+
+        for i in 1..length(l_text)
+        loop
+            idx := i;
+            if mod(i,16) = 1
+            then
+                -- insert the offset of the first character printed
+                l_output := l_output || trim(to_char(i,'0000')) || ':';
+            end if;
+            -- add the hex value of the character
+            l_output := l_output || ' ' || trim(to_char(ascii(substr(l_text,i,1)),'0x'));
+            if mod(i,16) = 0
+            then
+                -- add the text of the past 16 characters, but remove control characters
+                l_output := l_output || ' = ' || regexp_replace(substr(l_text,( ( ( trunc(i / 16) - 1 ) * 16 ) + 1 ),16),'[^[:print:]]',nchr(183),1,0) || chr(10);
+            end if;
+        end loop;
+
+        l_output := l_output || rpad('<', ( ( ( 16 * ceil ( idx / 16 ) ) - idx ) * 3),' ');
+        l_output := l_output || ' = ' || regexp_replace(substr(l_text,( 16 * floor(idx / 16) + 1 ) ) ,'[^[:print:]]',nchr(183),1,0) || chr(10);
+
+        return l_output;
+    end hex_dump;
 
 -- -------------------------------------------------------------------------------------------------
 -- package constructor
