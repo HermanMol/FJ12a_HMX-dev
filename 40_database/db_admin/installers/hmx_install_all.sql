@@ -20,6 +20,7 @@ prompt -------------------------------------------------------------------------
 @@..\..\package_specs\hmx_log_core.sql
 @@..\..\package_specs\hmx_log.sql
 @@..\..\package_specs\hmx_annotations.sql
+@@..\..\package_specs\hmx_utplsql_utl.sql
 
 @@..\..\operators\hmx_operators_ALL_install.sql
 
@@ -29,6 +30,7 @@ prompt -------------------------------------------------------------------------
 @@..\..\package_bodies\hmx_log_core.sql
 @@..\..\package_bodies\hmx_log.sql
 @@..\..\package_bodies\hmx_annotations.sql
+@@..\..\package_bodies\hmx_utplsql_utl.sql
 
 @@..\..\triggers\hmx_ddl_logging.sql
 -- make shure the DDL-logging is not operational - yet.
@@ -40,6 +42,7 @@ prompt -------------------------------------------------------------------------
 @@..\..\views\hmx_all_object_versions.sql
 @@..\..\views\hmx_log_with_object_version.sql
 @@..\..\views\hmx_log_all_nice.sql
+@@..\..\views\hmx_utplsql_suite_info.sql
 
 @@..\..\procedures\hmx_test_log_module.sql
 @@..\..\package_specs\hmx_call_stack_tests.sql

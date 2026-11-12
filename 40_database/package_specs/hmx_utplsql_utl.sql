@@ -7,12 +7,13 @@ as
 .HMX_OBJECT_USAGE: Utilities to support utPLSQL
 
 .HMX_OBJECT_NOTES:
-    - This package requires invoker rights (AUTHID CURRENT_USER)
     - For utPLSQL version v.3.2.3
+    - This package requires invoker rights (AUTHID CURRENT_USER)
     - Execute this package in the CURRENT_SCHEMA of the package to test
+    - Verify the generated package; search for the "?UT?" string in the source.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-11 17:48:33 +01:00
+.HMX_OBJECT_VERSION: 2026-11-12 15:24:42 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
@@ -62,6 +63,30 @@ as
     -- ---------------------------------------------------------------------------------------------
     -- Public function returning the current utPLSQL tags.
     function get_tags
+    return varchar2;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure to set the generated package name prefix
+    -- The prefix must include an optional underscore. Example pi_ut_package_prefix => 'ut_'
+    procedure set_ut_package_prefix
+        (pi_ut_package_prefix    in varchar2
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the package prefix.
+    function get_ut_package_prefix
+    return varchar2;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure to set the generated package name suffix
+    -- The suffix must include an optional underscore. Example pi_ut_package_suffix => '_07'
+    procedure set_ut_package_suffix
+        (pi_ut_package_suffix    in varchar2
+        );
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the package suffix.
+    function get_ut_package_suffix
     return varchar2;
 
     -- ---------------------------------------------------------------------------------------------

@@ -5,20 +5,23 @@ as
 .HMX_OBJECT_USAGE: Utilities to support utPLSQL
 
 .HMX_OBJECT_NOTES:
-    - This package requires invoker rights (AUTHID CURRENT_USER)
     - For utPLSQL version v.3.2.3
+    - This package requires invoker rights (AUTHID CURRENT_USER)
     - Execute this package in the CURRENT_SCHEMA of the package to test
+    - Verify the generated package; search for the "?UT?" string in the source.
 
 .HMX_DEVELOPER_NOTES: See HMX General Developer Notes
-.HMX_OBJECT_VERSION: 2026-11-11 17:48:27 +01:00
+.HMX_OBJECT_VERSION: 2026-11-12 15:24:49 +01:00
 .HMX_DB_VERSION: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production Version 19.33.0.1.0
 .HMX_OBJECT_REPO: git@github.com:HermanMol/FJ12a_HMX-dev.git
 
 ** </hmx-annotations> */
 
-    g_package_to_test   varchar2(128) := null;
-    g_object_id         number := null;
+    g_package_to_test   varchar2(128)   := null;
+    g_object_id         number          := null;
     g_tags              varchar2(32767) := null;
+    g_ut_package_prefix varchar2(10)    := 'ut_';
+    g_ut_package_suffix varchar2(10)    := null;
 
     -- ---------------------------------------------------------------------------------------------
     -- Cursor to retrieve the required data for the test package, spec and body using this same cursor
@@ -47,12 +50,12 @@ as
                         when 'TIMESTAMP'                        then 'T'
                         when 'TIMESTAMP WITH TIME ZONE'         then 'T'
                         when 'TIMESTAMP WITH LOCAL TIME ZONE'   then 'T'
-                        else '?'
+                        else '?UT?'
                     end as return_type
                 ,'F'            as method_type
             from USER_ARGUMENTS
             where object_id = i_object_id
-            and position = 0
+            and position = 0    -- exclude return variable
         )
         -- all function and procedure arguments except the function return arguments
         ,args as
@@ -77,14 +80,14 @@ as
                                     when 'TIMESTAMP'                        then 'T'
                                     when 'TIMESTAMP WITH TIME ZONE'         then 'T'
                                     when 'TIMESTAMP WITH LOCAL TIME ZONE'   then 'T'
-                                    else '?'
+                                    else '?UT?'
                                 end
                         ,'; ' on overflow truncate 'x' with count
                         )
-                    within group (order by position)            as argument_list
+                    within group (order by position)            as argument_list    -- Developer: DO NOT CHANGE! String is a REGEXP_REPLACE later!!!
             from user_arguments
             where object_id = i_object_id
-            and position > 0
+            and position > 0    -- exclude return variable
             group by package_name
                 ,subprogram_id
                 ,object_name
@@ -118,7 +121,7 @@ as
                 and args.subprogram_id = all_methods.subprogram_id
                 )
         where all_methods.object_id = i_object_id
-        and all_methods.subprogram_id > 0   -- no package constructors
+        and all_methods.subprogram_id > 0   -- exclude package constructors
         order by all_methods.object_name
             ,all_methods.subprogram_id
     --      ,all_methods.procedure_name
@@ -220,6 +223,46 @@ as
     end get_tags;
 
     -- ---------------------------------------------------------------------------------------------
+    -- Public procedure to set the generated package name prefix
+    -- The prefix must include an optional underscore. Example pi_ut_package_prefix => 'ut_'
+    procedure set_ut_package_prefix
+        (pi_ut_package_prefix    in varchar2
+        )
+    as
+    begin
+        g_ut_package_prefix := coalesce(nullif(substr(trim(both '_' from trim(pi_ut_package_prefix) ),1,9) || '_','_'),'ut_');
+    end set_ut_package_prefix;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the package prefix.
+    function get_ut_package_prefix
+    return varchar2
+    as
+    begin
+        return g_ut_package_prefix;
+    end get_ut_package_prefix;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public procedure to set the generated package name suffix
+    -- The suffix must include an optional underscore. Example pi_ut_package_suffix => '_07'
+    procedure set_ut_package_suffix
+        (pi_ut_package_suffix    in varchar2
+        )
+    as
+    begin
+        g_ut_package_suffix := nullif('_' || substr(trim(both '_' from trim(pi_ut_package_suffix) ),1,9),'_');
+    end set_ut_package_suffix;
+
+    -- ---------------------------------------------------------------------------------------------
+    -- Public function returning the package suffix.
+    function get_ut_package_suffix
+    return varchar2
+    as
+    begin
+        return g_ut_package_suffix;
+    end get_ut_package_suffix;
+
+    -- ---------------------------------------------------------------------------------------------
     -- Generate the base utPLSQL test package spec in DBMS_OUTPUT for a given package.
     -- The generated code must be reviewed:
     -- - Search for question marks where non-obvious data types are used
@@ -252,10 +295,11 @@ as
                 raise;
         end get_package;
 
-        lprt(0,'create or replace package ut_' || lower(g_package_to_test) || '_02');
+        lprt(0,'create or replace package ' || lower(get_ut_package_prefix || g_package_to_test || get_ut_package_suffix) );
         lprt(0,'as');
         lprt;
         lprt(0,'-- Generated using hmx_utplsql_utl.generate_test_package_spec on ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM') );
+        lprt(0,'-- Modified: Who, when?');
         lprt;
         lprt(4,'--%suite(' || get_suite(pi_suite => pi_suite) || ')');
         if pi_suitepath is not null
@@ -290,7 +334,7 @@ as
         lprt(4,'-- Number of tests generated: ' || l_subpgmnr);
         lprt(4,'-- End of suite(' || get_suite(pi_suite => pi_suite) || ')');
         lprt;
-        lprt(0,'end ut_' || lower(g_package_to_test) || '_02;');
+        lprt(0,'end ' || lower(get_ut_package_prefix || g_package_to_test || get_ut_package_suffix) || ';');
         lprt(0,'/');
         lprt;
     end generate_test_package_spec;
@@ -335,10 +379,11 @@ as
                 raise;
         end get_package;
 
-        lprt(0,'create or replace package body ut_' || lower(g_package_to_test) || '_02');
+        lprt(0,'create or replace package body ' ||  lower(get_ut_package_prefix || g_package_to_test || get_ut_package_suffix) );
         lprt(0,'as');
         lprt;
         lprt(0,'-- Generated using hmx_utplsql_utl.generate_test_package_body on ' || to_char(current_timestamp,'yyyy-mm-dd hh24:mi:ss TZH:TZM') );
+        lprt(0,'-- Modified: Who, when?');
         lprt;
         lprt(4,'--#suite(' || get_suite(pi_suite => pi_suite) || ')');
         if pi_suitepath is not null
@@ -365,7 +410,7 @@ as
                                     case when r_methods.f_return_data_type is not null then r_methods.f_return_data_type
                                     else 'varchar2'
                                     end
-                                    || '(?)'
+                                    || '(?UT?)'
                                 end
                             )
                     || ';';
@@ -386,7 +431,29 @@ as
             lprt(8,'l_expect       ' || l_data_type);
             lprt(8,'l_actual       ' || l_data_type);
             lprt(4,'begin');
-            lprt(8,'-- Verify action for ' || l_owner || '.' || lower(r_methods.method_name) || ';');
+            -- Template for expectation
+            lprt(8,'-- l_expect := ?UT?;');
+            -- Template for method call
+            if r_methods.f_return_type is null   -- not a function to be tested
+            then
+                lprt(8, '-- ' || lower(g_package_to_test || '.' || r_methods.method_name) );
+            else    -- a function to be tested
+                lprt(8,'-- l_actual := ' || lower(g_package_to_test || '.' || r_methods.method_name) );
+            end if;
+            -- Optionally list the method arguments
+            if r_methods.a_argument_list is not null
+            then
+                lprt(8,'-- ' || '    ('
+                    || regexp_replace(replace(r_methods.a_argument_list,',','    => '),'; ?',chr(10)||rpad(' ',8,' ')||'-- '||'    ,',1,0,'i')
+                    ||chr(10)||rpad(' ',8,' ') || '--     );'
+                    );
+            end if;
+            -- If non-function the actual value still must be retrieved
+            if r_methods.f_return_type is null   -- not a function to be tested
+            then
+                lprt(8,'-- l_actual := ' || chr(39) || '?UT?' || chr(39) || '; -- unknown at time of unit test generation');
+            end if;
+            -- Example of the assertion
             lprt(8,'-- Assert');
             lprt(8,'ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );');
             lprt(4,'end ' || lower(r_methods.method_name)  || '#' || trim(to_char(l_subpgmnr,'000')) || ';');
@@ -400,7 +467,7 @@ as
         lprt(4,'-- Number of tests generated: ' || l_subpgmnr);
         lprt(4,'-- End of suite(Test package ' || lower(sys_context('USERENV','CURRENT_SCHEMA')) || '.' || lower(g_package_to_test) || ')');
         lprt;
-        lprt(0,'end ut_' || lower(g_package_to_test) || '_02;');
+        lprt(0,'end ' || lower(get_ut_package_prefix || g_package_to_test || get_ut_package_suffix) || ';');
         lprt(0,'/');
         lprt;
     end generate_test_package_body;
@@ -436,7 +503,7 @@ as
             ,pi_suitepath    => pi_suitepath
             ,pi_context      => pi_context
             );
-        
+
     end generate_test_package;
 
 end hmx_utplsql_utl;
