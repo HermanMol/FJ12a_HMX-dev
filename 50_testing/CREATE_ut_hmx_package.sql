@@ -1,6 +1,7 @@
 prompt *I: ScriptBOF CREATE_ut_hmx_package.sql
 -- Create a new utPLSQL test package for an existing package
 -- HMO, 2026-11-12 16:33:49
+-- HMO, 2026-11-16 20:19:58 not automatically created anymore. Search "compile" here.
 
 -- Arguments can be specified on the command line or are prompted
 --   1. Package name...: The name of the package to generate the unit test package for.
@@ -101,12 +102,12 @@ end;
 -- -------------------------------------------------------------------------------------------------
 -- Compile the generated spec and body
 
-@hmx_spoolstart CREATE_ut_hmx_package.sql
-prompt *I: Compile new version utPLSQL test package &v_ut_pkg_name. for &v_pkg_name.
-prompt *I: Specification ...
-@@&v_ut_pkg_name._pks.sql
-prompt *I: Body ...
-@@&v_ut_pkg_name._pkb.sql
+--  manual: @hmx_spoolstart CREATE_ut_hmx_package.sql
+--  manual: prompt *I: Compile new version utPLSQL test package &v_ut_pkg_name. for &v_pkg_name.
+--  manual: prompt *I: Specification ...
+--  manual: @@&v_ut_pkg_name._pks.sql
+--  manual: prompt *I: Body ...
+--  manual: @@&v_ut_pkg_name._pkb.sql
 
 @hmx_recompile_invalid_all
 @hmx_report_invalid_all
