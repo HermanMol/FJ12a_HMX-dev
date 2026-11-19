@@ -9,11 +9,13 @@
 # No Windows shortcut files
 *.lnk
 
-# hmx ignore all files and folders starting with notgit or fff
+# hmx ignore all files and folders starting with notgit or fff or zz
 notgit_*/
 notgit*
 fff*/
 fff*
+zz*/
+zz*
 
 # HMX Project folders in 10_wrk
 # - when no data then ignore these folders
@@ -55,3 +57,4 @@ fff*
 # /40_database/type_specs/**
 # /40_database/views/**
 
+afiedt.buf

@@ -2,7 +2,8 @@ create or replace package body ut_hmx_log
 as
 
 -- Generated using hmx_utplsql_utl.generate_test_package_body on 2026-11-16 16:37:36 +01:00
--- Modified: Who, when?
+-- Modified: HMO, 2026-11-18 09:30:33
+-- Modified: HMO, 2026-11-19 15:25:20
 
     --#suite(FJ12a_hmx_log)
     --#suitepath(HMXTESTS.hmx_log)
@@ -11,13 +12,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_info#001)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_info#001
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_info
+        l_expect := hmx_log.k_info;
+        l_actual := hmx_log.fk_info;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_info#001;
@@ -25,13 +27,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_tech#002)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_tech#002
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_tech
+        l_expect := hmx_log.k_tech;
+        l_actual := hmx_log.fk_tech;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_tech#002;
@@ -39,13 +42,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_func#003)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_func#003
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_func
+        l_expect := hmx_log.k_func;
+        l_actual := hmx_log.fk_func;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_func#003;
@@ -53,13 +57,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_trace#004)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_trace#004
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_trace
+        l_expect := hmx_log.k_trace;
+        l_actual := hmx_log.fk_trace;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_trace#004;
@@ -67,13 +72,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_debug#005)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_debug#005
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_debug
+        l_expect := hmx_log.k_debug;
+        l_actual := hmx_log.fk_debug;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_debug#005;
@@ -81,13 +87,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_develop#006)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_develop#006
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_develop
+        l_expect := hmx_log.k_develop;
+        l_actual := hmx_log.fk_develop;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_develop#006;
@@ -95,13 +102,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_testing#007)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_testing#007
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_testing
+        l_expect := hmx_log.k_testing;
+        l_actual := hmx_log.fk_testing;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_testing#007;
@@ -109,13 +117,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_auditing#008)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_auditing#008
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_auditing
+        l_expect := hmx_log.k_auditing;
+        l_actual := hmx_log.fk_auditing;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_auditing#008;
@@ -123,13 +132,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_security#009)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_security#009
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_security
+        l_expect := hmx_log.k_security;
+        l_actual := hmx_log.fk_security;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_security#009;
@@ -137,13 +147,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_logging#010)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_logging#010
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_logging
+        l_expect := hmx_log.k_logging;
+        l_actual := hmx_log.fk_logging;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_logging#010;
@@ -151,13 +162,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_no_level#011)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_no_level#011
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_no_level
+        l_expect := hmx_log.k_no_level;
+        l_actual := hmx_log.fk_no_level;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_no_level#011;
@@ -165,13 +177,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_cache#012)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_cache#012
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_cache
+        l_expect := hmx_log.k_cache;
+        l_actual := hmx_log.fk_cache;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_cache#012;
@@ -179,13 +192,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_normal#013)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_normal#013
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_normal
+        l_expect := hmx_log.k_normal;
+        l_actual := hmx_log.fk_normal;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_normal#013;
@@ -193,13 +207,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_attention#014)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_attention#014
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_attention
+        l_expect := hmx_log.k_attention;
+        l_actual := hmx_log.fk_attention;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_attention#014;
@@ -207,13 +222,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_warning#015)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_warning#015
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_warning
+        l_expect := hmx_log.k_warning;
+        l_actual := hmx_log.fk_warning;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_warning#015;
@@ -221,13 +237,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_error#016)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_error#016
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_error
+        l_expect := hmx_log.k_error;
+        l_actual := hmx_log.fk_error;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_error#016;
@@ -235,13 +252,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_severe#017)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_severe#017
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_severe
+        l_expect := hmx_log.k_severe;
+        l_actual := hmx_log.fk_severe;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_severe#017;
@@ -249,13 +267,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_critical#018)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_critical#018
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_critical
+        l_expect := hmx_log.k_critical;
+        l_actual := hmx_log.fk_critical;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_critical#018;
@@ -263,13 +282,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(N=fk_force#019)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_force#019
     as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_force
+        l_expect := hmx_log.k_force;
+        l_actual := hmx_log.fk_force;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_force#019;
@@ -277,13 +297,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_anyone#020)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_anyone#020
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_anyone
+        l_expect := hmx_log.k_anyone;
+        l_actual := hmx_log.fk_anyone;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_anyone#020;
@@ -291,13 +312,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_developer#021)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_developer#021
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_developer
+        l_expect := hmx_log.k_developer;
+        l_actual := hmx_log.fk_developer;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_developer#021;
@@ -305,13 +327,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_tester#022)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_tester#022
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_tester
+        l_expect := hmx_log.k_tester;
+        l_actual := hmx_log.fk_tester;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_tester#022;
@@ -319,13 +342,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_admin#023)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_admin#023
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_admin
+        l_expect := hmx_log.k_admin;
+        l_actual := hmx_log.fk_admin;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_admin#023;
@@ -333,13 +357,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_operations#024)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_operations#024
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_operations
+        l_expect := hmx_log.k_operations;
+        l_actual := hmx_log.fk_operations;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_operations#024;
@@ -347,13 +372,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_user#025)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_user#025
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_user
+        l_expect := hmx_log.k_user;
+        l_actual := hmx_log.fk_user;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_user#025;
@@ -361,13 +387,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_keyuser#026)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_keyuser#026
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_keyuser
+        l_expect := hmx_log.k_keyuser;
+        l_actual := hmx_log.fk_keyuser;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_keyuser#026;
@@ -375,13 +402,14 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=fk_script#027)
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure fk_script#027
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.fk_script
+        l_expect := hmx_log.k_script;
+        l_actual := hmx_log.fk_script;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end fk_script#027;
@@ -394,8 +422,11 @@ as
         l_expect       number;
         l_actual       number;
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.get_minimum_log_level
+        l_expect := hmx_log.k_warning;
+        hmx_log.set_minimum_log_level
+            (pi_log_level    => hmx_log.fk_warning
+            );        
+        l_actual := hmx_log.get_minimum_log_level;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end get_minimum_log_level#028;
@@ -403,16 +434,17 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(set_minimum_log_level#029[pi_log_level,N])
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure set_minimum_log_level#029
     as
         l_expect       varchar2(1002);
         l_actual       varchar2(1002);
     begin
-        -- l_expect := ?UT?;
-        -- hmx_log.set_minimum_log_level
-        --     (pi_log_level    => N
-        --     );
-        -- l_actual := '?UT?'; -- unknown at time of unit test generation
+        l_expect := hmx_log.k_severe;
+        hmx_log.set_minimum_log_level
+            (pi_log_level    => hmx_log.fk_severe
+            );
+        l_actual := hmx_log.get_minimum_log_level;
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end set_minimum_log_level#029;
@@ -420,15 +452,16 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=log_level_name#030[pi_log_level_num,N])
+    -- Modified: HMO, 2026-11-19 15:25:20
     procedure log_level_name#030
     as
         l_expect       varchar2(32767);
         l_actual       varchar2(32767);
     begin
-        -- l_expect := ?UT?;
-        -- l_actual := hmx_log.log_level_name
-        --     (pi_log_level_num    => N
-        --     );
+        l_expect := 'Normal';
+        l_actual := hmx_log.log_level_name
+            (pi_log_level_num    => hmx_log.k_critical
+            );
         -- Assert
         ut.expect(l_actual).to_equal(l_expect, a_nulls_are_equal => true );
     end log_level_name#030;
@@ -436,6 +469,7 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(C=get_tags#031)
+    -- Modified HMO, 2026-11-18 09:30:33
     procedure get_tags#031
     as
         l_expect       varchar2(32767);
@@ -451,6 +485,7 @@ as
     -- ---------------------------------------------------------------------------------------------
     --#tags(utPLSQL_v3.2.4.)
     --#test(set_tags#032[pi_tags,C])
+    -- Modified HMO, 2026-11-18 09:30:33
     procedure set_tags#032
     as
         l_expect       varchar2(1002);

@@ -81,6 +81,8 @@ end;
 /
 @hmx_spoolfinish
 
+-- -------------------------------------------------------------------------------------------------
+-- Open the spool file for the ut package body
 @hmx_spoolddlstart &v_ut_pkg_name._pkb.sql
 begin
 
